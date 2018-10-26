@@ -39,9 +39,17 @@ contract Purchase {
         return diamondList.length;
     }
 
-    function changeOwner(address owner) {
+    /*
+    function changeOwner(Diamond diamond, address owner) {
         if (msg.sender == merchant)
             diamond.owner = owner;
         else throw;
+    }
+    */
+    
+    function changeOwner(uint id, uint index, address owner) public {
+        if (msg.sender == merchant)
+            diamonds[id][index].owner = owner;
+        else throw; 
     }
 }
