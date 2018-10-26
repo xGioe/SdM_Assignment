@@ -1,4 +1,4 @@
-pragma solidity ^0.4.22;
+pragma solidity ^0.4.24;
 
 contract Purchase {
     //diamond struct
@@ -27,14 +27,14 @@ contract Purchase {
     //     seller = _seller;
     // }
 
-    function release() {
+    function release() public{
         if (msg.sender == agent)
             suicide(seller); // Send all funds to seller
             //call change ownership
         else throw;
     }
 
-    function cancel() {
+    function cancel() public {
         if (msg.sender == agent)
             suicide(buyer); // Cancel escrow and return all funds to buyer
             //no need to call change ownership
