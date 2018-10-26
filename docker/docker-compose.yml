@@ -14,6 +14,8 @@ services:
       chainnet:
         ipv4_address: 172.25.0.101 # The miners need to know the IP address later on
 
+# MINER 1 ###############################################################################
+
   geth-dev-miner-1:
     hostname: geth-dev-miner-1
     depends_on:
@@ -41,6 +43,8 @@ services:
     networks:
       chainnet:
         ipv4_address: 172.25.0.102 # The monitor needs to know this address
+
+# MINER 2 ###############################################################################
 
   geth-dev-miner-2:
     hostname: geth-dev-miner-2
@@ -70,8 +74,10 @@ services:
       chainnet:
         ipv4_address: 172.25.0.104
 
-  geth-dev-miner-3:
-     hostname: geth-dev-miner-3
+# NODE 1  ###############################################################################
+
+  geth-dev-node-1:
+     hostname: geth-dev-node-1
      depends_on:
        - geth-dev-miner-2
      environment:
@@ -84,7 +90,7 @@ services:
          binary: 1.8.17+build15807+xenial
          privatekey: 5d468af37be2eb1d7d4f2e6106d614dcd126251ed7452a115cc6aa91036e1bf4
          password: password
-     container_name: geth-miner-3
+     container_name: geth-node-1
      ports:
        - 8547:8545
      healthcheck:
@@ -98,10 +104,40 @@ services:
        chainnet:
          ipv4_address: 172.25.0.110
 
+# NODE 2  ###############################################################################
+
+  geth-dev-node-2:
+     hostname: geth-dev-node-2
+     depends_on:
+       - geth-dev-node-1
+     environment:
+       - address=0x58b60d7338c4515141938fe6b233ce112c817a8c #derived from the private key which is passed in the args
+       - bootnodeId=76a8171707eca17647a47ca99ffd348927dfa60102792ea349a25d5192e61855be83b786e376276a306afcceea4ffd1c9c77e4370b417efc39f328a0d068004c #derived from the nodekeyhex of the bootnode
+       - bootnodeIp=172.25.0.101
+     build:
+       context: ./node
+       args:
+         binary: 1.8.17+build15807+xenial
+         privatekey: d42d2754406e49e922f54366e1db2d7b863b03ff38a1e5740563aa460e50c8c7
+         password: password
+     container_name: geth-dev-node-2
+     ports:
+       - 8548:8545
+     healthcheck:
+       test: wget http://localhost:8545
+       interval: 2s
+       timeout: 5s
+       retries: 30
+     volumes:
+      - eth-data-4:/root/.ethash
+     networks:
+       chainnet:
+         ipv4_address: 172.25.0.120
+
   # geth-dev-swarm-1:
   #    hostname: geth-dev-swarm-1
   #    depends_on:
-  #      - geth-dev-miner-3
+  #      - geth-dev-node-1
   #    environment:
   #      - address=8cc5a1a0802db41db826c2fcb72423744338dcb0 #derived from the private key which is passed in the args
   #      - bootnodeId=76a8171707eca17647a47ca99ffd348927dfa60102792ea349a25d5192e61855be83b786e376276a306afcceea4ffd1c9c77e4370b417efc39f328a0d068004c #derived from the nodekeyhex of the bootnode
