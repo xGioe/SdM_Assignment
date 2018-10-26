@@ -6,105 +6,72 @@ contract Purchase {
         address owner;
         uint id;
         string color;
-        uint carat;
-    }
-    //num diamonds
-    uint numDiamonds;
-    mapping (uint => Diamond) diamonds;
-
-    uint public value;
-    address public seller;
-    address public buyer;
-    enum State { Created, Locked, Inactive }
-    State public state; 
-
-    // Ensure that `msg.value` is an even number.
-    // Division will truncate if it is an odd number.
-    // Check via multiplication that it wasn't an odd number.
-    constructor() public payable {
-        seller = msg.sender;
-        value = msg.value / 2;
-        require((2 * value) == msg.value, "Value has to be even.");
     }
 
-    modifier condition(bool _condition) {
-        require(_condition);
-        _;
+    //mapping diamonds
+    mapping (uint => Diamond[]) diamonds;
+    //uint[] public diamondList;
+
+    address merchant;
+    address buyer;
+    address seller;
+    address agent;
+
+    // function Purchase();
+
+
+    // function Purchase(address _agent, address _seller, address _buyer) {
+    //     merchant = msg.sender;
+    //     agent = _agent;
+    //     buyer = _buyer;
+    //     seller = _seller;
+    // }
+
+    function release() {
+        if (msg.sender == agent)
+            suicide(seller); // Send all funds to seller
+            //call change ownership
+        else throw;
     }
 
-    modifier onlyBuyer() {
-        require(
-            msg.sender == buyer,
-            "Only buyer can call this."
-        );
-        _;
+    function cancel() {
+        if (msg.sender == agent)
+            suicide(buyer); // Cancel escrow and return all funds to buyer
+            //no need to call change ownership
+        else throw;
     }
 
-    modifier onlySeller() {
-        require(
-            msg.sender == seller,
-            "Only seller can call this."
-        );
-        _;
+    function addDiamond(uint id, address owner, uint id2, string color) public {
+        //var diamond = diamonds[_uint];
+
+        //diamond.address = _age;
+        //diamond.id = id;
+        //diamond.color = color;
+    if (msg.sender == merchant)
+        diamonds[id].push(Diamond(owner, id2, color));
+    else throw;
     }
 
-    modifier inState(State _state) {
-        require(
-            state == _state,
-            "Invalid state."
-        );
-        _;
+
+    // function getDiamonds() view public returns (uint[]) {
+    //     return diamonds;
+    // }
+    //
+    // function countDiamonds() view public returns (uint) {
+    //     return diamonds.length;
+    // }
+
+    /*
+    function changeOwner(Diamond diamond, address owner) {
+        if (msg.sender == merchant)
+            diamond.owner = owner;
+        else throw;
     }
 
-    event Aborted();
-    event PurchaseConfirmed();
-    event ItemReceived();
-
-    /// Abort the purchase and reclaim the ether.
-    /// Can only be called by the seller before
-    /// the contract is locked.
-    function abort()
-        public
-        onlySeller
-        inState(State.Created)
-    {
-        emit Aborted();
-        state = State.Inactive;
-        seller.transfer(address(this).balance);
-    }
-
-    /// Confirm the purchase as buyer.
-    /// Transaction has to include `2 * value` ether.
-    /// The ether will be locked until confirmReceived
-    /// is called.
-    function confirmPurchase()
-        public
-        inState(State.Created)
-        condition(msg.value == (2 * value))
-        payable
-    {
-        emit PurchaseConfirmed();
-        buyer = msg.sender;
-        state = State.Locked;
-    }
-
-    /// Confirm that you (the buyer) received the item.
-    /// This will release the locked ether.
-    function confirmReceived()
-        public
-        onlyBuyer
-        inState(State.Locked)
-    {
-        emit ItemReceived();
-        // It is important to change the state first because
-        // otherwise, the contracts called using `send` below
-        // can call in again here.
-        state = State.Inactive;
-
-        // NOTE: This actually allows both the buyer and the seller to
-        // block the refund - the withdraw pattern should be used.
-
-        buyer.transfer(value);
-        seller.transfer(address(this).balance);
+    */
+    function changeOwner(uint id, uint index, address owner) public {
+        if (msg.sender == merchant)
+            diamonds[id][index].owner = owner;
+        else throw;
     }
 }
