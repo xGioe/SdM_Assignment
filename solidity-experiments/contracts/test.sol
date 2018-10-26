@@ -19,25 +19,25 @@ contract Purchase {
         merchant = msg.sender;
     }
 
-    function addDiamond(uint id, address owner, uint id, string color) public {
+    function addDiamond(uint id, address owner, uint id2, string color) public {
         //var diamond = diamonds[_uint];
 
         //diamond.address = _age;
         //diamond.id = id;
         //diamond.color = color;
     if (msg.sender == merchant)
-        diamonds[id].push(Diamond(owner, id, color));
+        diamonds[id].push(Diamond(owner, id2, color));
     else throw;
 
     }
 
-    function getDiamonds() view public returns (uint[]) {
-        return diamonds;
-    }
-
-    function countDiamonds() view public returns (uint) {
-        return diamonds.length;
-    }
+    // function getDiamonds() view public returns (uint[]) {
+    //     return diamonds;
+    // }
+    //
+    // function countDiamonds() view public returns (uint) {
+    //     return diamonds.length;
+    // }
 
     /*
     function changeOwner(Diamond diamond, address owner) {
