@@ -13,11 +13,31 @@ contract Purchase {
     //uint[] public diamondList;
 
     address merchant;
+    address buyer;
+    address seller; 
+    address agent; 
 
 
-    Purchase() { 
+    function Purchase(address _agent, address _seller) { 
         merchant = msg.sender;
+        agent = _agent;
+        buyer = _buyer; 
+        seller = _seller; 
     }
+
+    function release() { 
+        if (msg.sender == agent) 
+            suicide(seller); // Send all funds to seller
+            //call change ownership 
+        else throw; 
+    }
+
+    function cancel() { 
+        if (msg.sender == agent) 
+            suicide(buyer); // Cancel escrow and return all funds to buyer
+            //no need to call change ownership    
+        else throw; 
+    }  
 
     function addDiamond(uint id, address owner, uint id, string color) public {
         //var diamond = diamonds[_uint];
@@ -28,11 +48,11 @@ contract Purchase {
     if (msg.sender == merchant)   
         diamonds[id].push(Diamond(owner, id, color));
     else throw;
-
     }
 
+
     function getDiamonds() view public returns (uint[]) {
-        return diamondList;
+        return diamonds;
     }
 
     function countDiamonds() view public returns (uint) {
@@ -45,8 +65,8 @@ contract Purchase {
             diamond.owner = owner;
         else throw;
     }
-    */
     
+    */
     function changeOwner(uint id, uint index, address owner) public {
         if (msg.sender == merchant)
             diamonds[id][index].owner = owner;
