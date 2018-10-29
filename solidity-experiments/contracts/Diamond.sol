@@ -1,7 +1,14 @@
 pragma solidity ^0.4.22;
 //pragma experimental ABIEncoderV2;
 
-contract Diamond {
+contract DiamondTracker {
+
+    struct Diamond {
+        bytes32 id;
+        string origin;
+        DiamondType d_type;
+        DiamondProperties properties;
+    }
 
     struct DiamondProperties {
         uint size;
@@ -10,61 +17,40 @@ contract Diamond {
 
     enum DiamondType { Synthetic, Natural }
 
-    bytes32 id;
-    string origin;
-    DiamondType d_type;
-    DiamondProperties properties;
-
-    //TODO increase number of properties
-    //Type 1 = Synthetic, Type 2 = Natural
-    constructor(uint _size, uint _type, string _origin) public {
-        require(_type == 1 || _type == 2, "Type must be 1(Synthetic) or 2(Natural)");
-        if(_type == 1) {
-            d_type = DiamondType.Synthetic;
-        } else if (_type == 2) {
-            d_type = DiamondType.Natural;
-        }
-        origin = _origin;
-        properties.size = _size;
-        id = sha256(abi.encodePacked(_size, _type));
-    }
-
-    function equals(Diamond d) external view returns (bool) {
-        return keccak256(encodeDiamond(this)) == keccak256(encodeDiamond(d));
-    }
-
-    function encodeDiamond(Diamond d) private view returns (bytes) {
-        return abi.encodePacked(
-            d.getId(),
-            d.getOrigin(),
-            d.getType(),
-            d.getSize()
-        );
-    }
-
-    function getId() public view returns (bytes32) {
-        return id;
-    }
-
-    function getOrigin() public view returns (string) {
-        return origin;
-    }
-
-    function getType() public view returns (DiamondType) {
-        return d_type;
-    }
-
-    function getSize() public view returns (uint) {
-        return properties.size;
-    }
-    
-}
-
-contract DiamondTracker {
+    address[] certificate_authorities;
     mapping(bytes32 => address) owners;
     Diamond[] diamonds;
 
-    function add(Diamond diamond, address owner) public returns (bool) {
-        
+    //TODO increase number of properties
+    //Type 1 = Synthetic, Type 2 = Natural
+    function register(address _owner, uint _type, string _origin, uint _size) public returns (bytes32) {
+        //TODO Verify if the caller is a certificate authority
+        require(_type == 1 || _type == 2, "Type must be 1(Synthetic) or 2(Natural)");
+
+        Diamond memory d;
+        if(_type == 1) {
+            d.d_type = DiamondType.Synthetic;
+        } else if (_type == 2) {
+            d.d_type = DiamondType.Natural;
+        }
+        d.origin = _origin;
+        d.properties.size = _size;
+        d.id = sha256(abi.encodePacked(_size, _type));
+
+        diamonds.push(d);
+        owners[d.id] = _owner;
+    }
+
+    function equals(Diamond d1, Diamond d2) internal pure returns (bool) {
+        return keccak256(encodeDiamond(d1)) == keccak256(encodeDiamond(d2));
+    }
+
+    function encodeDiamond(Diamond d) private pure returns (bytes) {
+        return abi.encodePacked(
+            d.id,
+            d.origin,
+            d.d_type,
+            d.properties.size
+        );
     }
 }
