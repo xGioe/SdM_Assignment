@@ -5,12 +5,12 @@ contract DiamondRegistry {
     //diamond struct
     struct Diamond {
       uint id;
-      string color;
-      string type;
+      string diamondColor;
+      string diamondType;
     }
 
     //the mapping between each owner (address) and the diamons possessed
-    mapping (address => Diamond[]) public owenership;
+    mapping (address => Diamond[]) public owners;
 
     // uint public value;
     address public mediator;
@@ -19,7 +19,7 @@ contract DiamondRegistry {
     State public state;
 
     // Set the Certification Authority as the owner of the contract
-    Diamond() public {
+    constructor() public {
         mediator = msg.sender;
     }
 
@@ -28,6 +28,7 @@ contract DiamondRegistry {
           msg.sender == mediator,
           "Only mediator can call this."
       );
+      _;
     }
 
     // modifier onlyBuyer() {
@@ -63,12 +64,12 @@ contract DiamondRegistry {
     // Params:
     // - owner(address): address of the diamond owner issuing the add request
     // - color(string): color of diamon
-    function addDiamond(address owner, string color, string type) public {
+    function addDiamond(address owner, string diamondColor, string diamondType) public onlyMediator {
 
-      onlyMediator
-      public
+
+
       // check if diamond is already present
-      // create the ID of diamond: ID = hash(color,type)
+      // create the ID of diamond: ID = hash(diamondColor,diamondType)
       // add the address to the owners list
       // add the diamond to the diamonds list
       // add in the register hashmap the address (if not exist) and bind the newly diamon
@@ -84,12 +85,12 @@ contract DiamondRegistry {
     //     return diamonds.length;
     // }
 
-    /*
-    function changeOwner(Diamond diamond, address owner) {
-        if (msg.sender == merchant)
-            diamond.owner = owner;
-        else throw;
-    }
+
+    // function changeOwner(Diamond diamond, address owner) {
+    //     if (msg.sender == merchant)
+    //         diamond.owner = owner;
+    //     else throw;
+    // }
 
 
     // /// Abort the DiamondRegistry and reclaim the ether.
