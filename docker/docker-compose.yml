@@ -16,8 +16,8 @@ services:
 
 # MINER 1 ###############################################################################
 
-  geth-dev-miner-1:
-    hostname: geth-dev-miner-1
+  geth-ca-1:
+    hostname: geth-ca-1
     depends_on:
       - geth-bootnode
     environment:
@@ -30,7 +30,7 @@ services:
         binary: 1.8.17+build15807+xenial
         privatekey: df504d175ae63abf209bad9dda965310d99559620550e74521a6798a41215f46 # Please don't do something like this in production, okay?
         password: pass
-    container_name: geth-miner-1
+    container_name: geth-ca-1
     ports:
       - 8545:8545
     healthcheck:
@@ -46,10 +46,10 @@ services:
 
 # MINER 2 ###############################################################################
 
-  geth-dev-miner-2:
-    hostname: geth-dev-miner-2
+  geth-ca-2:
+    hostname: geth-ca-2
     depends_on:
-      - geth-dev-miner-1
+      - geth-ca-1
     environment:
       - address=0x3590aca93338b0721966a8d0c96ebf2c4c87c544 #derived from the private key which is passed in the args
       - bootnodeId=76a8171707eca17647a47ca99ffd348927dfa60102792ea349a25d5192e61855be83b786e376276a306afcceea4ffd1c9c77e4370b417efc39f328a0d068004c #derived from the nodekeyhex of the bootnode
@@ -60,7 +60,7 @@ services:
         binary: 1.8.17+build15807+xenial
         privatekey: bc5b578e0dcb2dbf98dd6e5fe62cb5a28b84a55e15fc112d4ca88e1f62bd7c35
         password: word
-    container_name: geth-miner-2
+    container_name: geth-ca-2
     ports:
       - 8546:8545
     healthcheck:
@@ -76,10 +76,10 @@ services:
 
 # NODE 1  ###############################################################################
 
-  geth-dev-node-1:
-     hostname: geth-dev-node-1
+  geth-seller-1:
+     hostname: geth-seller-1
      depends_on:
-       - geth-dev-miner-2
+       - geth-ca-2
      environment:
        - address=0x4e79423a920def8a35f312c9632cd6429025e44c #derived from the private key which is passed in the args
        - bootnodeId=76a8171707eca17647a47ca99ffd348927dfa60102792ea349a25d5192e61855be83b786e376276a306afcceea4ffd1c9c77e4370b417efc39f328a0d068004c #derived from the nodekeyhex of the bootnode
@@ -90,7 +90,7 @@ services:
          binary: 1.8.17+build15807+xenial
          privatekey: 5d468af37be2eb1d7d4f2e6106d614dcd126251ed7452a115cc6aa91036e1bf4
          password: password
-     container_name: geth-node-1
+     container_name: geth-seller-1
      ports:
        - 8547:8545
      healthcheck:
@@ -106,10 +106,10 @@ services:
 
 # NODE 2  ###############################################################################
 
-  geth-dev-node-2:
-     hostname: geth-dev-node-2
+  geth-buyer-1:
+     hostname: geth-buyer-1
      depends_on:
-       - geth-dev-node-1
+       - geth-seller-1
      environment:
        - address=0x58b60d7338c4515141938fe6b233ce112c817a8c #derived from the private key which is passed in the args
        - bootnodeId=76a8171707eca17647a47ca99ffd348927dfa60102792ea349a25d5192e61855be83b786e376276a306afcceea4ffd1c9c77e4370b417efc39f328a0d068004c #derived from the nodekeyhex of the bootnode
@@ -120,7 +120,7 @@ services:
          binary: 1.8.17+build15807+xenial
          privatekey: d42d2754406e49e922f54366e1db2d7b863b03ff38a1e5740563aa460e50c8c7
          password: password
-     container_name: geth-dev-node-2
+     container_name: geth-buyer-1
      ports:
        - 8548:8545
      healthcheck:
@@ -137,7 +137,7 @@ services:
   # geth-dev-swarm-1:
   #    hostname: geth-dev-swarm-1
   #    depends_on:
-  #      - geth-dev-node-1
+  #      - geth-seller-1
   #    environment:
   #      - address=8cc5a1a0802db41db826c2fcb72423744338dcb0 #derived from the private key which is passed in the args
   #      - bootnodeId=76a8171707eca17647a47ca99ffd348927dfa60102792ea349a25d5192e61855be83b786e376276a306afcceea4ffd1c9c77e4370b417efc39f328a0d068004c #derived from the nodekeyhex of the bootnode
@@ -209,7 +209,7 @@ services:
   geth-explorer:
     hostname: geth-explorer
     depends_on:
-      - geth-dev-miner-1
+      - geth-ca-1
     ports:
       - 8080:8080
     build:
@@ -222,7 +222,7 @@ services:
   geth-backend:
     hostname: geth-backend
     depends_on:
-      - geth-dev-miner-1
+      - geth-ca-1
     build:
       context: ./monitor/backend
     container_name: geth-backend
