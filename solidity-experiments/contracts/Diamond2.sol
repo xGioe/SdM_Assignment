@@ -4,7 +4,7 @@ pragma solidity ^0.4.22;
 contract DiamondTracker2 {
 
   struct Diamond {
-    bytes32 id;
+    bytes32 id;  //use bytes for arbitrary-length raw byte data and string for arbitrary-length string (UTF-8) data
     string origin;
     DiamondType d_type;
     DiamondProperties properties;
@@ -12,16 +12,18 @@ contract DiamondTracker2 {
 
   struct DiamondProperties {
     uint size;
+    //string color;
+    //string clarity;
+    //string cut;
+    //string carat; //fixed points numbers are not supported yet by solidity
     //TODO rest of the properties
   }
 
   enum DiamondType { Synthetic, Natural }
-
   address[] certificate_authorities;
   // mapping(bytes32 => address) owners;
   //the mapping between each owner (address) and the diamons possessed
-  mapping (address => Diamond[]) public owners;
-
+  mapping (address => Diamond[]) public owners;  
   Diamond[] diamondsList;
 
 
@@ -33,6 +35,7 @@ contract DiamondTracker2 {
 
   //TODO increase number of properties
   //Type 1 = Synthetic, Type 2 = Natural
+  //function register(address _owner, uint _type, string _origin, uint _size, string _color, string _clarity, string _cut, string _carat) external returns (bytes32) {
   function register(address _owner, uint _type, string _origin, uint _size) external returns (bytes32) {
     require(isCA(msg.sender), "You are not allowed to call register()");
     require(_type == 1 || _type == 2, "Type must be 1(Synthetic) or 2(Natural)");
@@ -45,8 +48,12 @@ contract DiamondTracker2 {
     }
     d.origin = _origin;
     d.properties.size = _size;
+    //d.properties.color = _color;
+    //d.properties.clarity = _clarity;
+    //d.properties.cut = _cut;
+    //d.properties.carat = _carat;  
     //creation of the unique ID
-    d.id = sha256(abi.encodePacked(_size, _type));
+    d.id = sha256(abi.encodePacked(_size, _type));   //only size&type? origin???
 
     if(!addDiamond(d, _owner))
     revert("Diamond already exists");
@@ -77,16 +84,21 @@ contract DiamondTracker2 {
   }
 
 
-
+  //function getDiamondByIndex(uint index) external view returns (bytes32, string, DiamondType, uint, string, string, string, string) {
   function getDiamondByIndex(uint index) external view returns (bytes32, string, DiamondType, uint) {
     return (
       diamondsList[index].id,
       diamondsList[index].origin,
       diamondsList[index].d_type,
-      diamondsList[index].properties.size
+      diamondsList[index].properties.size  //add comma
+      //diamondsList[index].properties.color, 
+      //diamondsList[index].properties.clarity,
+      //diamondsList[index].properties.cut,
+      //diamondsList[index].properties.carat
     );
   }
 
+  //function getDiamondByDiamonId(bytes32 id) external view returns (bytes32, string, DiamondType, uint, string, string, string, string) {
   function getDiamondByDiamonId(bytes32 id) external view returns (bytes32, string, DiamondType, uint) {
     for(uint i = 0; i < diamondsList.length; i++) {
       if(diamondsList[i].id == id){
@@ -94,7 +106,11 @@ contract DiamondTracker2 {
           diamondsList[i].id,
           diamondsList[i].origin,
           diamondsList[i].d_type,
-          diamondsList[i].properties.size
+          diamondsList[i].properties.size  //add comma
+          //diamondsList[i].properties.color, 
+          //diamondsList[i].properties.clarity,
+          //diamondsList[i].properties.cut,
+          //diamondsList[i].properties.carat
         );
       }
     }
@@ -112,7 +128,7 @@ contract DiamondTracker2 {
     //TODO I think this can be optimised
     for(uint i = 0; i < diamondsList.length; i++) {
       if(equals(d, diamondsList[i]))
-      return false;
+        return false;
     }
 
     // NOTE: we expect that if diamond is already in diamondsList then it has a owner
@@ -126,7 +142,7 @@ contract DiamondTracker2 {
   function isCA(address user) private view returns (bool) {
     for(uint i = 0; i < certificate_authorities.length; i++) {
       if(certificate_authorities[i] == user)
-      return true;
+        return true;
     }
 
     return false;
@@ -147,7 +163,12 @@ contract DiamondTracker2 {
       d.id,
       d.origin,
       d.d_type,
-      d.properties.size
+      d.properties.size  //add comma
+      //d.properties.color,
+      //d.properties.clarity,
+      //d.properties.cut,
+      //d.properties.carat 
     );
   }
 }
+
