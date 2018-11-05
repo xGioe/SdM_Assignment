@@ -75,9 +75,9 @@ contract DiamondTracker2 {
     }
 
     for(uint j = 0; j < diamondsList.length; j++) {
-        if (diamondsList[j].id == sellingDiamond.id){
-                owners[_newOwner].push(diamondsList[j]);
-        }
+      if (diamondsList[j].id == sellingDiamond.id){
+        owners[_newOwner].push(diamondsList[j]);
+      }
     }
 
     emit diamondSold();
@@ -131,7 +131,7 @@ contract DiamondTracker2 {
     //TODO I think this can be optimised
     for(uint i = 0; i < diamondsList.length; i++) {
       if(equals(d, diamondsList[i]))
-        return false;
+      return false;
     }
 
     // NOTE: we expect that if diamond is already in diamondsList then it has a owner
@@ -145,7 +145,7 @@ contract DiamondTracker2 {
   function isCA(address _user) private view returns (bool) {
     for(uint i = 0; i < certificate_authorities.length; i++) {
       if(certificate_authorities[i] == _user)
-        return true;
+      return true;
     }
 
     return false;
