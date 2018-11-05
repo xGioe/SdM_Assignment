@@ -9,7 +9,7 @@ contract Migrations {
   }
 
   modifier restricted() {
-    if (msg.sender == owner) _;  //?????  '_' temporary??
+    if (msg.sender == owner) _;
   }
 
   function setCompleted(uint completed) public restricted {
@@ -17,7 +17,7 @@ contract Migrations {
   }
 
   function upgrade(address new_address) public restricted {
-    Migrations upgraded = Migrations(new_address);  //would be better to create the constructor also for that
+    Migrations upgraded = Migrations(new_address);
     upgraded.setCompleted(last_completed_migration);
   }
 }
