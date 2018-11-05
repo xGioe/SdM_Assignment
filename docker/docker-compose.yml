@@ -134,6 +134,37 @@ services:
        chainnet:
          ipv4_address: 172.25.0.120
 
+# MASTER NODE  ###############################################################################
+
+  geth-master:
+     hostname: geth-master
+     depends_on:
+       - geth-seller-1
+     environment:
+       - address=0xf991a63237d8d5b97de53f2bdc2d200d2b430533 #derived from the private key which is passed in the args
+       - bootnodeId=76a8171707eca17647a47ca99ffd348927dfa60102792ea349a25d5192e61855be83b786e376276a306afcceea4ffd1c9c77e4370b417efc39f328a0d068004c #derived from the nodekeyhex of the bootnode
+       - bootnodeIp=172.25.0.101
+     build:
+       context: ./node
+       args:
+         binary: 1.8.17+build15807+xenial
+         privatekey: 3a7d9f72b8536f7d18d08db02a80d6b92ed67362aabe24d69277cb26666f10a0
+         password: password
+     container_name: geth-master
+     ports:
+       - 8549:8545
+     healthcheck:
+       test: wget http://localhost:8545
+       interval: 2s
+       timeout: 5s
+       retries: 30
+     volumes:
+      - eth-data-4:/root/.ethash
+     networks:
+       chainnet:
+         ipv4_address: 172.25.0.130
+
+
   # geth-dev-swarm-1:
   #    hostname: geth-dev-swarm-1
   #    depends_on:
