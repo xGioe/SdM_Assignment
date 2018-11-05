@@ -15,7 +15,6 @@ contract DiamondTracker2 {
 
     enum DiamondType { Synthetic, Natural }
     address[] certificate_authorities;
-    // mapping(bytes32 => address) owners;
     //the mapping between each owner (address) and the diamons possessed
     mapping (address => Diamond[]) public owners;  
     Diamond[] diamondsList;
@@ -39,7 +38,7 @@ contract DiamondTracker2 {
         d.origin = _origin;
         d.properties.size = _size;
         //creation of the unique ID
-        d.id = sha256(abi.encodePacked(_size, _type));
+        d.id = sha256(abi.encodePacked(_size, _type, _origin));
 
         if(!addDiamond(d, _owner))
         revert("Diamond already exists");
@@ -47,12 +46,12 @@ contract DiamondTracker2 {
         return d.id;
     }
 
-    function sellDiamond(bytes32 ID, address newOwner) {
-        Diamond sellingDiamond;
+    function sellDiamond(bytes32 ID, address newOwner) external {
+        Diamond memory sellingDiamond;
         sellingDiamond.id = ID;
         require(isOwner(msg.sender, sellingDiamond), "You are not the owner of the specified diamond");
 
-        Diamond[] ownedDiamonds = owners[msg.sender];
+        Diamond[] storage ownedDiamonds = owners[msg.sender];
         for(uint i = 0; i < ownedDiamonds.length; i++) {
             if(owners[msg.sender][i].id == sellingDiamond.id){
                 delete owners[msg.sender][i];
@@ -66,7 +65,6 @@ contract DiamondTracker2 {
         }
 
         emit diamondSold();
-
     }
 
     function getDiamondByIndex(uint index) external view returns (bytes32, string, DiamondType, uint) {
@@ -120,7 +118,7 @@ contract DiamondTracker2 {
     }
 
     function isOwner(address user, Diamond sellingDiamond) private view returns (bool) {
-        Diamond[] ownedDiamonds = owners[user];
+        Diamond[] storage ownedDiamonds = owners[user];
         for(uint i = 0; i < ownedDiamonds.length; i++) {
             if(ownedDiamonds[i].id == sellingDiamond.id){
                 return true;
