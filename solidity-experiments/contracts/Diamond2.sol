@@ -14,7 +14,7 @@ contract DiamondTracker2 {
     }
 
     enum DiamondType { Synthetic, Natural }
-    address[] certificate_authorities;
+    address[] public certificate_authorities;
     // mapping(bytes32 => address) owners;
     //the mapping between each owner (address) and the diamons possessed
     mapping (address => Diamond[]) public owners;
