@@ -27,12 +27,12 @@ contract DiamondTracker2 {
 
     function register(address _owner, uint _type, string _origin, uint _size) external returns (bytes32) {
         require(isCA(msg.sender), "You are not allowed to call register()");
-        require(_type == 1 || _type == 2, "Type must be 1(Synthetic) or 2(Natural)"); //Type 1 = Synthetic, Type 2 = Natural
+        require(_type == 0 || _type == 1, "Type must be 0(Synthetic) or 1(Natural)"); //Type 0 = Synthetic, Type 1 = Natural
 
         Diamond memory d;
-        if(_type == 1) {
+        if(_type == 0) {
             d.d_type = DiamondType.Synthetic;
-        } else if (_type == 2) {
+        } else if (_type == 1) {
             d.d_type = DiamondType.Natural;
         }
         d.origin = _origin;
@@ -98,6 +98,7 @@ contract DiamondTracker2 {
     }
 
     function addDiamond(Diamond d, address owner) private returns (bool) {
+        //Check if diamond already exists
         for(uint i = 0; i < diamondsList.length; i++) {
             if(equals(d, diamondsList[i]))
               return false;
