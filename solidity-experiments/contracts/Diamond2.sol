@@ -54,8 +54,8 @@ contract DiamondTracker2 {
         }
         d.origin = _origin;
         d.properties.size = _size;
-        //creation of the unique ID
-        d.id = sha256(abi.encodePacked(_size, _type, _origin));
+        
+        d.id = sha256(abi.encodePacked(_size, _type, _origin)); //creation of the unique ID
 
         if(!addDiamond(d, _owner))
             revert("Diamond already exists");
@@ -63,7 +63,7 @@ contract DiamondTracker2 {
         return d.id;
     }
 
-    function sellDiamond(bytes32 ID, address newOwner) external {
+    function sell(bytes32 ID, address newOwner) external {
         Diamond memory sellingDiamond;
         sellingDiamond.id = ID;
         require(isOwner(msg.sender, sellingDiamond), "You are not the owner of the specified diamond");
@@ -85,16 +85,28 @@ contract DiamondTracker2 {
     }
 
     
-    /*function buy(bytes32 diamond_id, uint value) external {
-        Diamond memory d = getDiamondById
-        require(equals(this.getDiamondById(diamond_id), NULL_DIAMOND), "Must request to buy an existing diamond");
-        DiamondExchange memory exchange;
+    function buy(bytes32 diamond_id) external payable {
+        /* TODO Figure out the error with the string
+        bytes32 id;
+        string origin;
+        DiamondType d_type;
+        uint size;
+        (id, origin, d_type, size) = this.getDiamondById(diamond_id);
+        Diamond memory diamond = Diamond({
+            id: id,
+            origin: origin,
+            d_type: d_type,
+            properties: DiamondProperties(size)
+        });
+        require(equals(diamond, NULL_DIAMOND), "Must request to buy an existing diamond");
+        */
+        DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
         exchange.diamond_id = diamond_id;
         exchange.buyer = msg.sender;
         exchange.value = msg.value;
         exchange.state = ExchangeState.Pending;
         //TODO Logic of the function
-    }*/
+    }
 
     function getDiamondByIndex(uint index) external view returns (bytes32, string, DiamondType, uint) {
         if(index >= diamondsList.length) { //Assuming no diamonds are deleted from the system
