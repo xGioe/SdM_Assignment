@@ -84,9 +84,10 @@ contract DiamondTracker2 {
         emit diamondSold();
     }
 
-    /*
-    function buy(bytes32 diamond_id, uint value) external {
-        require(equals(getDiamondById(diamond_id), NULL_DIAMOND), "N"
+    
+    /*function buy(bytes32 diamond_id, uint value) external {
+        Diamond memory d = getDiamondById
+        require(equals(this.getDiamondById(diamond_id), NULL_DIAMOND), "Must request to buy an existing diamond");
         DiamondExchange memory exchange;
         exchange.diamond_id = diamond_id;
         exchange.buyer = msg.sender;
@@ -113,7 +114,7 @@ contract DiamondTracker2 {
         }
     }
 
-    function getDiamondByDiamondId(bytes32 id) external view returns (bytes32, string, DiamondType, uint) {
+    function getDiamondById(bytes32 id) external view returns (bytes32, string, DiamondType, uint) {
         for(uint i = 0; i < diamondsList.length; i++) {
             if(diamondsList[i].id == id){
                 return (
