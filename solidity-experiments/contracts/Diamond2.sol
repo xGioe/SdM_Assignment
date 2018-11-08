@@ -21,6 +21,17 @@ contract DiamondTracker2 {
         uint size;
     }
 
+    modifier isCa()
+    {
+        bool found = 0;
+        for(uint i = 0; i < certificate_authorities.length; i++) {
+            if(certificate_authorities[i] == msg.sender) {
+              found = 1;
+            }
+          }
+        if (!found) throw; _
+    }
+
     enum ExchangeState { Pending, Approved, Rejected, Finished} //TODO Review the states needed
     struct DiamondExchange {
         bytes32 diamond_id;
@@ -43,8 +54,8 @@ contract DiamondTracker2 {
         certificate_authorities = _certificate_authorities;
     }
 
-    function register(address _owner, uint _type, string _origin, uint _size) external returns (bytes32) {
-        require(isCA(msg.sender), "You are not allowed to call register()");
+    function register(address _owner, uint _type, string _origin, uint _size) isCA external returns (bytes32) {
+        // require(isCA(msg.sender), "You are not allowed to call register()");
         require(_type == 0 || _type == 1, "Type must be 0(Synthetic) or 1(Natural)"); //Type 0 = Synthetic, Type 1 = Natural
 
         Diamond memory d;
@@ -163,13 +174,15 @@ contract DiamondTracker2 {
         return true;
     }
 
-    function isCA(address user) private view returns (bool) {
-        for(uint i = 0; i < certificate_authorities.length; i++) {
-            if(certificate_authorities[i] == user)
-              return true;
-        }
-        return false;
-    }
+    // function isCA(address user) private view returns (bool) {
+    //     for(uint i = 0; i < certificate_authorities.length; i++) {
+    //         if(certificate_authorities[i] == user)
+    //           return true;
+    //     }
+    //     return false;
+    // }
+
+
 
     function isOwner(address user, Diamond sellingDiamond) private view returns (bool) {
         Diamond[] storage ownedDiamonds = owners[user];
