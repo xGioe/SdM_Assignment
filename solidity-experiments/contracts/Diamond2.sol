@@ -95,6 +95,7 @@ contract DiamondTracker2 {
             }
         }
 
+        exchange.state = ExchangeState.Finished;
         emit diamondSold();
     }
 
@@ -132,7 +133,7 @@ contract DiamondTracker2 {
         for(uint i = 0; i < exchanges.length; i++) {
             if(exchanges[i].seller == _seller){
                 sellDiamond(exchanges[i].id, exchanges[i].buyer);
-                exchange.state = ExchangeState.Finished;
+                exchange.state = ExchangeState.Approved;
             }
         }
     }
