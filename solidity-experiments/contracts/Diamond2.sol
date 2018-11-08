@@ -129,8 +129,11 @@ contract DiamondTracker2 {
         address _diamondOwner = msg.sender;
         for(uint i = 0; i < exchanges.length; i++) {
             if(exchanges[i].diamondOwner == _diamondOwner){
-                this.sellDiamond(exchanges[i].diamond_id, exchanges[i].buyer);
-                exchanges[i].state = ExchangeState.Finished;
+                if(exchanges[i].state == ExchangeState.Pending) {
+                    this.sellDiamond(exchanges[i].diamond_id, exchanges[i].buyer);
+                    exchanges[i].state = ExchangeState.Approved;
+                    delete exchanges[i];
+                }
             }
         }
     }
