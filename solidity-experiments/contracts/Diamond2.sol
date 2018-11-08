@@ -47,12 +47,12 @@ contract DiamondTracker2 {
         return d.id;
     }
 
-    function sellDiamond(bytes32 ID, address newOwner) {
-        Diamond sellingDiamond;
+    function sellDiamond(bytes32 ID, address newOwner) external {
+        Diamond memory sellingDiamond;
         sellingDiamond.id = ID;
         require(isOwner(msg.sender, sellingDiamond), "You are not the owner of the specified diamond");
 
-        Diamond[] ownedDiamonds = owners[msg.sender];
+        Diamond[] storage ownedDiamonds = owners[msg.sender];
         for(uint i = 0; i < ownedDiamonds.length; i++) {
             if(owners[msg.sender][i].id == sellingDiamond.id){
                 delete owners[msg.sender][i];
@@ -121,7 +121,7 @@ contract DiamondTracker2 {
     }
 
     function isOwner(address user, Diamond sellingDiamond) private view returns (bool) {
-        Diamond[] ownedDiamonds = owners[user];
+        Diamond[] storage ownedDiamonds = owners[user];
         for(uint i = 0; i < ownedDiamonds.length; i++) {
             if(ownedDiamonds[i].id == sellingDiamond.id){
                 return true;
