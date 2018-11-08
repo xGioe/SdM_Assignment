@@ -26,9 +26,9 @@ contract DiamondTracker2 {
         bool found = 0;
         for(uint i = 0; i < certificate_authorities.length; i++) {
             if(certificate_authorities[i] == msg.sender) {
-              found = 1;
+                found = 1;
             }
-          }
+        }
         if (!found) throw; _
     }
 
@@ -36,6 +36,7 @@ contract DiamondTracker2 {
     struct DiamondExchange {
         bytes32 diamond_id;
         address buyer;
+        address seller;
         uint value; //In ether
         ExchangeState state;
     }
@@ -49,6 +50,7 @@ contract DiamondTracker2 {
     DiamondExchange[] exchanges;
 
     event diamondSold();
+    event diamondBuyingRequest();
 
     constructor(address[] _certificate_authorities) public {
         certificate_authorities = _certificate_authorities;
@@ -115,9 +117,24 @@ contract DiamondTracker2 {
         DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
         exchange.diamond_id = diamond_id;
         exchange.buyer = msg.sender;
+        exchange.seller = getDiamondById(diamond_id).owner;
         exchange.value = msg.value;
         exchange.state = ExchangeState.Pending;
+
+        exchange.push(exchange);
+
+        emit diamondBuyingRequest();
         //TODO Logic of the function
+    }
+
+    function buyingRequestsPending() external {
+        address _seller = msg.sender;
+        for(uint i = 0; i < exchanges.length; i++) {
+            if(exchanges[i].seller == _seller){
+
+            }
+        }
+
     }
 
 
@@ -167,7 +184,6 @@ contract DiamondTracker2 {
             if(equals(d, diamondsList[i]))
               return false;
         }
-
       // NOTE: we expect that if diamond is already in diamondsList then it has a owner
         diamondsList.push(d);
         owners[owner].push(d);
