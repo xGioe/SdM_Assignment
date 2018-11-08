@@ -159,7 +159,7 @@ services:
        timeout: 5s
        retries: 30
      volumes:
-      - eth-data-4:/root/.ethash
+      - eth-data-5:/root/.ethash
      networks:
        chainnet:
          ipv4_address: 172.25.0.130

@@ -1,0 +1,38 @@
+version: "3"
+services:
+    geth-buyer-2:
+       hostname: geth-buyer-2
+       # depends_on:
+       #   - geth-seller-1
+       environment:
+         - address=0x42e5a1a48424f2e672922a4874a11ab72eada109 #derived from the private key which is passed in the args
+         - bootnodeId=76a8171707eca17647a47ca99ffd348927dfa60102792ea349a25d5192e61855be83b786e376276a306afcceea4ffd1c9c77e4370b417efc39f328a0d068004c #derived from the nodekeyhex of the bootnode
+         - bootnodeIp=172.25.0.101
+       build:
+         context: ./node
+         args:
+           binary: 1.8.17+build15807+xenial
+           privatekey: 58b52a9ec46ec5c9bf774fc359dc6620c29cb93922c2949bf77b066cad46b136
+           password: password
+       container_name: geth-buyer-2
+       ports:
+         - 8550:8545
+       healthcheck:
+         test: wget http://localhost:8545
+         interval: 2s
+         timeout: 5s
+         retries: 30
+       volumes:
+        - eth-data-6:/root/.ethash
+       networks:
+         chainnet:
+           ipv4_address: 172.25.0.140
+networks:
+  chainnet:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 172.25.0.0/24
+
+volumes:
+  eth-data-6:
