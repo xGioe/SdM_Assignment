@@ -7,6 +7,7 @@ contract DiamondTracker2 {
         string origin;
         DiamondType d_type;
         DiamondProperties properties;
+        address diamondOwner;
     }
 
     //Can't declare as constant. Constant non-value types not yet supported
@@ -19,17 +20,6 @@ contract DiamondTracker2 {
 
     struct DiamondProperties {
         uint size;
-    }
-
-    modifier isCa()
-    {
-        bool found = 0;
-        for(uint i = 0; i < certificate_authorities.length; i++) {
-            if(certificate_authorities[i] == msg.sender) {
-              found = 1;
-            }
-          }
-        if (!found) throw; _
     }
 
     enum ExchangeState { Pending, Approved, Rejected, Finished} //TODO Review the states needed
@@ -116,8 +106,10 @@ contract DiamondTracker2 {
         exchange.diamond_id = diamond_id;
         exchange.buyer = msg.sender;
         exchange.value = msg.value;
+
         exchange.state = ExchangeState.Pending;
         //TODO Logic of the function
+
     }
 
 
@@ -173,14 +165,6 @@ contract DiamondTracker2 {
         owners[owner].push(d);
         return true;
     }
-
-    // function isCA(address user) private view returns (bool) {
-    //     for(uint i = 0; i < certificate_authorities.length; i++) {
-    //         if(certificate_authorities[i] == user)
-    //           return true;
-    //     }
-    //     return false;
-    // }
 
 
 
