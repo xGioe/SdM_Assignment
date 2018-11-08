@@ -15,7 +15,8 @@ contract DiamondTracker2 {
         id: "0x00",
         origin: "",
         d_type: DiamondType.Synthetic,
-        properties: DiamondProperties(0)
+        properties: DiamondProperties(0),
+        diamondOwner: 0x00
     });
 
     struct DiamondProperties {
@@ -26,7 +27,7 @@ contract DiamondTracker2 {
     struct DiamondExchange {
         bytes32 diamond_id;
         address buyer;
-        address seller;
+        address diamondOwner;
         uint value; //In ether
         ExchangeState state;
         // address diamondOwner;
@@ -47,7 +48,7 @@ contract DiamondTracker2 {
         certificate_authorities = _certificate_authorities;
     }
 
-    function register(address _owner, uint _type, string _origin, uint _size) isCA external returns (bytes32) {
+    function register(address _owner, uint _type, string _origin, uint _size) external returns (bytes32) {
         // require(isCA(msg.sender), "You are not allowed to call register()");
         require(_type == 0 || _type == 1, "Type must be 0(Synthetic) or 1(Natural)"); //Type 0 = Synthetic, Type 1 = Natural
 
@@ -64,7 +65,8 @@ contract DiamondTracker2 {
 
         if(!addDiamond(d, _owner))
             revert("Diamond already exists");
-        d.owner = _owner;
+
+        d.diamondOwner = _owner;
 
         return d.id;
     }
@@ -87,37 +89,38 @@ contract DiamondTracker2 {
             }
         }
 
-        exchange.state = ExchangeState.Finished;
         emit diamondSold();
     }
 
 
     function buy(bytes32 diamond_id) external payable {
-        /* TODO Figure out the error with the string
+
         bytes32 id;
-        string origin;
+        string memory origin;
         DiamondType d_type;
         uint size;
-        (id, origin, d_type, size) = this.getDiamondById(diamond_id);
-        Diamond memory diamond = Diamond({
+        address diamondOwner;
+        (id, origin, d_type, size, diamondOwner) = this.getDiamondById(diamond_id);
+        Diamond memory sellingDiamond = Diamond({
             id: id,
             origin: origin,
             d_type: d_type,
-            properties: DiamondProperties(size)
+            properties: DiamondProperties(size),
+            diamondOwner: diamondOwner
         });
-        require(equals(diamond, NULL_DIAMOND), "Must request to buy an existing diamond");
-        */
-        // Diamond d = this.getDiamondById(diamond_id);
+        require(equals(sellingDiamond, NULL_DIAMOND), "Must request to buy an existing diamond");
+
+
+
 
         DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
-        exchange.diamond_id = d.id;
-        // exchange.diamondOwner = d.owner;
+        exchange.diamond_id = sellingDiamond.id;
         exchange.buyer = msg.sender;
-        exchange.seller = getDiamondById(diamond_id).owner;
+        exchange.diamondOwner = sellingDiamond.diamondOwner;
         exchange.value = msg.value;
         exchange.state = ExchangeState.Pending;
 
-        exchange.push(exchange);
+        exchanges.push(exchange);
 
         emit diamondBuyingRequest();
         //TODO Logic of the function
@@ -125,13 +128,12 @@ contract DiamondTracker2 {
     }
 
     function buyingRequestsPending() external {
-        address _seller = msg.sender;
+        address _diamondOwner = msg.sender;
         for(uint i = 0; i < exchanges.length; i++) {
-            if(exchanges[i].seller == _seller){
-                if(exchanges[i].state == ExchangeState.Pending) {
-                    sellDiamond(exchanges[i].id, exchanges[i].buyer);
-                    exchange.state = ExchangeState.Approved;
-                }
+            if(exchanges[i].diamondOwner == _diamondOwner){
+
+                this.sellDiamond(exchanges[i].diamond_id, exchanges[i].buyer);
+                exchanges[i].state = ExchangeState.Finished;
             }
         }
     }
@@ -154,18 +156,19 @@ contract DiamondTracker2 {
         }
     }
 
-    function getDiamondById(bytes32 id) external view returns (bytes32, string, DiamondType, uint) {
+    function getDiamondById(bytes32 id) external view returns (bytes32, string, DiamondType, uint, address) {
         for(uint i = 0; i < diamondsList.length; i++) {
             if(diamondsList[i].id == id){
                 return (
                   diamondsList[i].id,
                   diamondsList[i].origin,
                   diamondsList[i].d_type,
-                  diamondsList[i].properties.size
+                  diamondsList[i].properties.size,
+                  diamondsList[i].diamondOwner
                 );
             }
         }
-        return (NULL_DIAMOND.id, NULL_DIAMOND.origin, NULL_DIAMOND.d_type, NULL_DIAMOND.properties.size);
+        return (NULL_DIAMOND.id, NULL_DIAMOND.origin, NULL_DIAMOND.d_type, NULL_DIAMOND.properties.size, NULL_DIAMOND.diamondOwner);
     }
 
     function getNumberOfDiamonds() external view returns (uint) {
