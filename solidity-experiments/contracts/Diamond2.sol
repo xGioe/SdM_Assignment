@@ -26,9 +26,10 @@ contract DiamondTracker2 {
     struct DiamondExchange {
         bytes32 diamond_id;
         address buyer;
+        address seller;
         uint value; //In ether
         ExchangeState state;
-        address diamondOwner;
+        // address diamondOwner;
     }
 
     enum DiamondType { Synthetic, Natural }
@@ -40,6 +41,7 @@ contract DiamondTracker2 {
     DiamondExchange[] exchanges;
 
     event diamondSold();
+    event diamondBuyingRequest();
 
     constructor(address[] _certificate_authorities) public {
         certificate_authorities = _certificate_authorities;
@@ -104,18 +106,32 @@ contract DiamondTracker2 {
         });
         require(equals(diamond, NULL_DIAMOND), "Must request to buy an existing diamond");
         */
-        Diamond d = this.getDiamondById(diamond_id);
+        // Diamond d = this.getDiamondById(diamond_id);
 
         DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
         exchange.diamond_id = d.id;
-        exchange.diamondOwner = d.owner;
+        // exchange.diamondOwner = d.owner;
         exchange.buyer = msg.sender;
+        exchange.seller = getDiamondById(diamond_id).owner;
         exchange.value = msg.value;
         exchange.state = ExchangeState.Pending;
+
+        exchange.push(exchange);
+
+        emit diamondBuyingRequest();
         //TODO Logic of the function
 
     }
 
+    function buyingRequestsPending() external {
+        address _seller = msg.sender;
+        for(uint i = 0; i < exchanges.length; i++) {
+            if(exchanges[i].seller == _seller){
+                sellDiamond(exchanges[i].id, exchanges[i].buyer);
+                exchange.state = ExchangeState.Finished;
+            }
+        }
+    }
 
     function getDiamondByIndex(uint index) external view returns (bytes32, string, DiamondType, uint) {
         if(index >= diamondsList.length) { //Assuming no diamonds are deleted from the system
@@ -163,7 +179,6 @@ contract DiamondTracker2 {
             if(equals(d, diamondsList[i]))
               return false;
         }
-
       // NOTE: we expect that if diamond is already in diamondsList then it has a owner
         diamondsList.push(d);
         owners[owner].push(d);
