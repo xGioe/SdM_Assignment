@@ -135,6 +135,7 @@ contract DiamondTracker2 {
                 if(exchanges[i].state == ExchangeState.Pending) {
                     sellDiamond(exchanges[i].id, exchanges[i].buyer);
                     exchange.state = ExchangeState.Approved;
+                    delete exchanges[i];
                 }
             }
         }
