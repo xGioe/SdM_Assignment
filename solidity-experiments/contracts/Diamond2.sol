@@ -132,8 +132,10 @@ contract DiamondTracker2 {
         address _seller = msg.sender;
         for(uint i = 0; i < exchanges.length; i++) {
             if(exchanges[i].seller == _seller){
-                sellDiamond(exchanges[i].id, exchanges[i].buyer);
-                exchange.state = ExchangeState.Approved;
+                if(exchanges[i].state == ExchangeState.Pending) {
+                    sellDiamond(exchanges[i].id, exchanges[i].buyer);
+                    exchange.state = ExchangeState.Approved;
+                }
             }
         }
     }
