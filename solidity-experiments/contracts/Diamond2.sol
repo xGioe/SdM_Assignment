@@ -30,7 +30,6 @@ contract DiamondTracker2 {
         address diamondOwner;
         uint value; //In ether
         ExchangeState state;
-        // address diamondOwner;
     }
 
     enum DiamondType { Synthetic, Natural }
@@ -88,7 +87,6 @@ contract DiamondTracker2 {
                 owners[newOwner].push(diamondsList[j]);
             }
         }
-
         emit diamondSold();
     }
 
@@ -131,27 +129,41 @@ contract DiamondTracker2 {
         address _diamondOwner = msg.sender;
         for(uint i = 0; i < exchanges.length; i++) {
             if(exchanges[i].diamondOwner == _diamondOwner){
-
                 this.sellDiamond(exchanges[i].diamond_id, exchanges[i].buyer);
                 exchanges[i].state = ExchangeState.Finished;
             }
         }
     }
+    //
+    // function getPendingBuyingRequest() external view returns (bytes32, address, uint) {
+    //     address _seller = msg.sender;
+    //     for(uint i = 0; i < exchanges.length; i++) {
+    //         if(exchanges[i].diamondOwner == _seller && exchanges[i].state == ExchangeState.Pending){
+    //           return(
+    //             exchanges[i].diamond_id,
+    //             exchanges[i].buyer,
+    //             exchanges[i].value
+    //           );
+    //         }
+    //     }
+    // }
 
-    function getDiamondByIndex(uint index) external view returns (bytes32, string, DiamondType, uint) {
+    function getDiamondByIndex(uint index) external view returns (bytes32, string, DiamondType, uint, address) {
         if(index >= diamondsList.length) { //Assuming no diamonds are deleted from the system
             return (
                 NULL_DIAMOND.id,
                 NULL_DIAMOND.origin,
                 NULL_DIAMOND.d_type,
-                NULL_DIAMOND.properties.size
+                NULL_DIAMOND.properties.size,
+                NULL_DIAMOND.diamondOwner
             );
         } else {
             return (
                 diamondsList[index].id,
                 diamondsList[index].origin,
                 diamondsList[index].d_type,
-                diamondsList[index].properties.size
+                diamondsList[index].properties.size,
+                diamondsList[index].diamondOwner
             );
         }
     }
