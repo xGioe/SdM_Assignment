@@ -28,6 +28,7 @@ contract DiamondTracker2 {
         address buyer;
         uint value; //In ether
         ExchangeState state;
+        address diamondOwner;
     }
 
     enum DiamondType { Synthetic, Natural }
@@ -61,6 +62,7 @@ contract DiamondTracker2 {
 
         if(!addDiamond(d, _owner))
             revert("Diamond already exists");
+        d.owner = _owner;
 
         return d.id;
     }
@@ -102,11 +104,13 @@ contract DiamondTracker2 {
         });
         require(equals(diamond, NULL_DIAMOND), "Must request to buy an existing diamond");
         */
+        Diamond d = this.getDiamondById(diamond_id);
+
         DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
-        exchange.diamond_id = diamond_id;
+        exchange.diamond_id = d.id;
+        exchange.diamondOwner = d.owner;
         exchange.buyer = msg.sender;
         exchange.value = msg.value;
-        // exchange.owner = ;
         exchange.state = ExchangeState.Pending;
         //TODO Logic of the function
 
