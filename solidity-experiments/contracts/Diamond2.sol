@@ -106,7 +106,7 @@ contract DiamondTracker2 {
         exchange.diamond_id = diamond_id;
         exchange.buyer = msg.sender;
         exchange.value = msg.value;
-
+        // exchange.owner = ;
         exchange.state = ExchangeState.Pending;
         //TODO Logic of the function
 
