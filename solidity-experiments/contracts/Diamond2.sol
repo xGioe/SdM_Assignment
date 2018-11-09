@@ -196,7 +196,14 @@ contract DiamondTracker2 {
                 );
             }
         }
-        return (NULL_DIAMOND.id, NULL_DIAMOND.origin, NULL_DIAMOND.d_type, NULL_DIAMOND.properties.size, NULL_DIAMOND.diamondOwner, NULL_DIAMOND.diamondPrice);
+        return (
+            NULL_DIAMOND.id, 
+            NULL_DIAMOND.origin, 
+            NULL_DIAMOND.d_type, 
+            NULL_DIAMOND.properties.size, 
+            NULL_DIAMOND.diamondOwner, 
+            NULL_DIAMOND.diamondPrice
+        );
     }
 
     function getNumberOfDiamonds() external view returns (uint) {
