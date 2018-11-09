@@ -70,15 +70,19 @@ contract DiamondTracker2 {
         return d.id;
     }
 
-    function sellDiamond(bytes32 ID, address newOwner) external {
+    function sell(bytes32 ID, address newOwner) external {
+        sell(ID, msg.sender, newOwner);
+    }
+
+    function sell(bytes32 ID, address oldOwner, address newOwner) private {
         Diamond memory sellingDiamond;
         sellingDiamond.id = ID;
-        require(isOwner(msg.sender, sellingDiamond), "You are not the owner of the specified diamond");
+        require(isOwner(oldOwner, sellingDiamond), "You are not the owner of the specified diamond");
 
-        Diamond[] storage ownedDiamonds = owners[msg.sender];
+        Diamond[] storage ownedDiamonds = owners[oldOwner];
         for(uint i = 0; i < ownedDiamonds.length; i++) {
-            if(owners[msg.sender][i].id == sellingDiamond.id){
-                delete owners[msg.sender][i];
+            if(owners[oldOwner][i].id == sellingDiamond.id){
+                delete owners[oldOwner][i];
             }
         }
 
@@ -132,7 +136,7 @@ contract DiamondTracker2 {
         for(uint i = 0; i < exchanges.length; i++) {
             if(exchanges[i].diamondOwner == _diamondOwner){
                 if(exchanges[i].state == ExchangeState.Pending) {
-                    this.sellDiamond(exchanges[i].diamond_id, exchanges[i].buyer);
+                    sell(exchanges[i].diamond_id, _diamondOwner, exchanges[i].buyer);
                     exchanges[i].state = ExchangeState.Approved;
                     for (uint j = ++i; j < exchanges.length; j++) {
                         if(exchanges[i].diamondOwner == _diamondOwner && exchanges[i].state == ExchangeState.Pending) {
