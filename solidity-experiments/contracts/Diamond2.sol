@@ -27,7 +27,7 @@ contract DiamondTracker2 {
     struct DiamondExchange {
         bytes32 diamond_id;
         address buyer;
-        address diamondOwner;
+        address seller;
         uint value; //In ether
         ExchangeState state;
     }
@@ -43,7 +43,7 @@ contract DiamondTracker2 {
 
     mapping (address => DiamondExchange[]) diamondExchangeRequests;
 
-    mapping (bytes32 => DiamondExchange[]) diamondExchangeHistory;
+    mapping (bytes32 => DiamondExchange[]) public diamondExchangeHistory;
 
     event diamondSold();
     event diamondBuyingRequestReceived();
@@ -76,9 +76,10 @@ contract DiamondTracker2 {
     }
 
     function sell(bytes32 ID, address newOwner) external {
-        sell(ID, msg.sender, newOwner);
-    }
-    function sell(bytes32 ID, address oldOwner, address newOwner) private {
+      address oldOwner = msg.sender;
+    //     sell(ID, msg.sender, newOwner);
+    // }
+    // function sell(bytes32 ID, address oldOwner, address newOwner) private {
         Diamond memory sellingDiamond;
         sellingDiamond.id = ID;
         require(isOwner(oldOwner, sellingDiamond), "You are not the owner of the specified diamond");
@@ -106,7 +107,7 @@ contract DiamondTracker2 {
                 if (exchangesRequests[k].buyer == newOwner){
                     exchangesRequests[k].state = ExchangeState.Finished;
                     //update the buying history of the Diamond
-                    diamondExchangeHistory[sellingDiamond.id].push(exchangesRequests[k]);
+                    diamondExchangeHistory[exchangesRequests[k].diamond_id].push(exchangesRequests[k]);
                 } else {
                     // otherwise set it to rejected
                     exchangesRequests[k].state = ExchangeState.Rejected;
@@ -207,7 +208,6 @@ contract DiamondTracker2 {
     }
 
     function addDiamond(Diamond d, address owner) private returns (bool) {
-        //TODO: Check if diamond already exists
         for(uint i = 0; i < diamondsList.length; i++) {
             if(equals(d, diamondsList[i]))
               return false;
@@ -219,9 +219,10 @@ contract DiamondTracker2 {
 
         //register event to diamond history
 
-        DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
+        DiamondExchange storage exchange; //This memory exchange will be converted to storage once pushed into the array
         exchange.diamond_id = d.id;
         exchange.buyer = owner;
+        exchange.seller = owner;
         // exchange.value = msg.value;
         exchange.state = ExchangeState.Finished;
 
