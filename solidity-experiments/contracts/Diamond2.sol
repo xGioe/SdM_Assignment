@@ -20,12 +20,12 @@ contract DiamondTracker2 {
         diamondOwner: 0x00,
         diamondPrice: 0
     });
-
+    
+    //For simplicity we narrowed down the number of properties
     struct DiamondProperties {
         uint size;
     }
 
-    enum ExchangeState { Pending, Approved, Rejected, Finished} //TODO Review the states needed
     struct DiamondExchange {
         bytes32 diamond_id;
         address buyer;
@@ -34,19 +34,21 @@ contract DiamondTracker2 {
         ExchangeState state;
     }
 
-    enum DiamondType { Synthetic, Natural }
     address[] public certificate_authorities;
-
-    //the mapping between each owner (address) and the diamons possessed
-    mapping (address => Diamond[]) public owners;
 
     //list of the diamonds tracked in the ledger
     Diamond[] diamondsList;
 
+    //enums
+    enum ExchangeState { Pending, Approved, Rejected, Finished} 
+    enum DiamondType { Synthetic, Natural }    
+
+    //mappings
     mapping (address => DiamondExchange[]) diamondExchangeRequests;
-
     mapping (bytes32 => DiamondExchange[]) public diamondExchangeHistory;
+    mapping (address => Diamond[]) public owners; //the mapping between each owner (address) and the diamons possessed
 
+    //events
     event diamondSold();
     event diamondBuyingRequestReceived();
 
@@ -73,16 +75,11 @@ contract DiamondTracker2 {
         if(!addDiamond(d, _owner))
             revert("Diamond already exists");
 
-
-
         return d.id;
     }
 
     function sell(bytes32 ID, address newOwner) external {
-      address oldOwner = msg.sender;
-    //     sell(ID, msg.sender, newOwner);
-    // }
-    // function sell(bytes32 ID, address oldOwner, address newOwner) private {
+        address oldOwner = msg.sender;
         Diamond memory sellingDiamond;
         sellingDiamond.id = ID;
         require(isOwner(oldOwner, sellingDiamond), "You are not the owner of the specified diamond");
@@ -93,14 +90,12 @@ contract DiamondTracker2 {
                 delete owners[oldOwner][i];
             }
         }
-
         for(uint j = 0; j < diamondsList.length; j++) {
             if (diamondsList[j].id == sellingDiamond.id){
                 diamondsList[j].diamondOwner = newOwner;
                 owners[newOwner].push(diamondsList[j]);
             }
         }
-
         //get the buy requests of the msg.sender
         DiamondExchange[] storage exchangesRequests = diamondExchangeRequests[oldOwner];
         for(uint k = 0; k < exchangesRequests.length; k++) {
@@ -117,12 +112,10 @@ contract DiamondTracker2 {
                 }
             }
         }
-
         emit diamondSold();
     }
 
     function buy(bytes32 diamond_id) external payable {
-
         bytes32 id;
         string memory origin;
         DiamondType d_type;
@@ -130,6 +123,7 @@ contract DiamondTracker2 {
         address diamondOwner;
         uint diamondPrice;
         (id, origin, d_type, size, diamondOwner, diamondPrice) = this.getDiamondById(diamond_id);
+
         Diamond memory sellingDiamond = Diamond({
             id: id,
             origin: origin,
@@ -152,8 +146,6 @@ contract DiamondTracker2 {
         diamondExchangeRequests[sellingDiamond.diamondOwner].push(exchange);
 
         emit diamondBuyingRequestReceived();
-        //TODO Logic of the function
-
     }
 
     function getPendingBuyingRequestsSize() external view returns (uint) {
@@ -166,7 +158,6 @@ contract DiamondTracker2 {
             exchangesRequests[_index].diamond_id,
             exchangesRequests[_index].buyer,
             exchangesRequests[_index].state
-            // exchanges[i].value
             );
     }
 
@@ -226,21 +217,16 @@ contract DiamondTracker2 {
         diamondsList.push(d);
         owners[owner].push(d);
 
-        //register event to diamond history
-
         DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
         exchange.diamond_id = d.id;
         exchange.buyer = owner;
         exchange.seller = owner;
-        // exchange.value = msg.value;
         exchange.state = ExchangeState.Finished;
 
         diamondExchangeHistory[d.id].push(exchange);
 
         return true;
     }
-
-
 
     function isOwner(address user, Diamond sellingDiamond) private view returns (bool) {
         Diamond[] storage ownedDiamonds = owners[user];
@@ -270,6 +256,7 @@ contract DiamondTracker2 {
     }
 
     function getDiamondExchangeHistoryLenght(bytes32 diamond_id) external view returns (uint) {
-      return diamondExchangeHistory[diamond_id].length;
+        return diamondExchangeHistory[diamond_id].length;
     }
 }
+
