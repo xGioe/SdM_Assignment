@@ -48,7 +48,7 @@ contract DiamondTracker2 {
     }
 
     function register(address _owner, uint _type, string _origin, uint _size) external returns (bytes32) {
-        // require(isCA(msg.sender), "You are not allowed to call register()");
+        require(isCA(msg.sender), "You are not allowed to call register()");
         require(_type == 0 || _type == 1, "Type must be 0(Synthetic) or 1(Natural)"); //Type 0 = Synthetic, Type 1 = Natural
 
         Diamond memory d;
@@ -65,7 +65,7 @@ contract DiamondTracker2 {
         if(!addDiamond(d, _owner))
             revert("Diamond already exists");
 
-        d.diamondOwner = _owner;
+
 
         return d.id;
     }
@@ -85,6 +85,7 @@ contract DiamondTracker2 {
         for(uint j = 0; j < diamondsList.length; j++) {
             if (diamondsList[j].id == sellingDiamond.id){
                 owners[newOwner].push(diamondsList[j]);
+                diamondsList[j].diamondOwner = newOwner;
             }
         }
         emit diamondSold();
@@ -106,8 +107,9 @@ contract DiamondTracker2 {
             properties: DiamondProperties(size),
             diamondOwner: diamondOwner
         });
-        require(equals(sellingDiamond, NULL_DIAMOND), "Must request to buy an existing diamond");
 
+        require(!equals(sellingDiamond, NULL_DIAMOND), "Must request to buy an existing diamond");
+        require(!(sellingDiamond.diamondOwner == msg.sender), "Sender already owns this diamond");
 
 
 
@@ -125,14 +127,14 @@ contract DiamondTracker2 {
 
     }
 
-    function buyingRequestsPending() external {
+    function buyingRequestsPending() external payable {
         address _diamondOwner = msg.sender;
         for(uint i = 0; i < exchanges.length; i++) {
             if(exchanges[i].diamondOwner == _diamondOwner){
                 if(exchanges[i].state == ExchangeState.Pending) {
                     this.sellDiamond(exchanges[i].diamond_id, exchanges[i].buyer);
                     exchanges[i].state = ExchangeState.Approved;
-                    delete exchanges[i];
+                    //delete exchanges[i];
                 }
             }
         }
@@ -201,6 +203,7 @@ contract DiamondTracker2 {
               return false;
         }
       // NOTE: we expect that if diamond is already in diamondsList then it has a owner
+        d.diamondOwner = owner;
         diamondsList.push(d);
         owners[owner].push(d);
         return true;
@@ -214,6 +217,14 @@ contract DiamondTracker2 {
             if(ownedDiamonds[i].id == sellingDiamond.id){
                 return true;
             }
+        }
+        return false;
+    }
+
+    function isCA(address user) private view returns (bool) {
+        for(uint i = 0; i < certificate_authorities.length; i++) {
+            if(certificate_authorities[i] == user)
+              return true;
         }
         return false;
     }
