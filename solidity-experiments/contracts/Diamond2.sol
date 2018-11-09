@@ -75,15 +75,18 @@ contract DiamondTracker2 {
         return d.id;
     }
 
-    function sellDiamond(bytes32 ID, address newOwner) external {
+    function sell(bytes32 ID, address newOwner) external {
+        sell(ID, msg.sender, newOwner);
+    }
+    function sell(bytes32 ID, address oldOwner, address newOwner) private {
         Diamond memory sellingDiamond;
         sellingDiamond.id = ID;
-        require(isOwner(msg.sender, sellingDiamond), "You are not the owner of the specified diamond");
+        require(isOwner(oldOwner, sellingDiamond), "You are not the owner of the specified diamond");
 
-        Diamond[] storage ownedDiamonds = owners[msg.sender];
+        Diamond[] storage ownedDiamonds = owners[oldOwner];
         for(uint i = 0; i < ownedDiamonds.length; i++) {
-            if(owners[msg.sender][i].id == sellingDiamond.id){
-                delete owners[msg.sender][i];
+            if(owners[oldOwner][i].id == sellingDiamond.id){
+                delete owners[oldOwner][i];
             }
         }
 
@@ -95,7 +98,7 @@ contract DiamondTracker2 {
         }
 
         //get the buy requests of the msg.sender
-        DiamondExchange[] storage exchangesRequests = diamondExchangeRequests[msg.sender];
+        DiamondExchange[] storage exchangesRequests = diamondExchangeRequests[oldOwner];
         for(uint k = 0; k < exchangesRequests.length; k++) {
             // if a request for the diamond_id is found
             if (exchangesRequests[k].diamond_id == sellingDiamond.id){
@@ -157,7 +160,7 @@ contract DiamondTracker2 {
             exchangesRequests[_index].buyer,
             exchangesRequests[_index].state
             // exchanges[i].value
-       );
+            );
     }
 
     function getDiamondByIndex(uint index) external view returns (bytes32, string, DiamondType, uint, address) {
