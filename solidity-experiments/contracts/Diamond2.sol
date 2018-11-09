@@ -134,6 +134,12 @@ contract DiamondTracker2 {
                 if(exchanges[i].state == ExchangeState.Pending) {
                     this.sellDiamond(exchanges[i].diamond_id, exchanges[i].buyer);
                     exchanges[i].state = ExchangeState.Approved;
+                    for (uint j = ++i; j < exchanges.length; j++) {
+                        if(exchanges[i].diamondOwner == _diamondOwner && exchanges[i].state == ExchangeState.Pending) {
+                            exchanges[i].state == ExchangeState.Finished;
+                        }
+                    }
+                    break;
                     //delete exchanges[i];
                 }
             }
@@ -238,3 +244,4 @@ contract DiamondTracker2 {
         );
     }
 }
+
