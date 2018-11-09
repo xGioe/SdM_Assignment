@@ -11,7 +11,6 @@ contract DiamondTracker2 {
         uint diamondPrice;
     }
 
-    //Can't declare as constant. Constant non-value types not yet supported
     Diamond NULL_DIAMOND = Diamond({
         id: "0x00",
         origin: "",
@@ -20,6 +19,7 @@ contract DiamondTracker2 {
         diamondOwner: 0x00,
         diamondPrice: 0
     });
+    bytes32 constant NULL_BYTES = 0x00;
     
     //For simplicity we narrowed down the number of properties
     struct DiamondProperties {
@@ -51,14 +51,26 @@ contract DiamondTracker2 {
     //events
     event diamondSold();
     event diamondBuyingRequestReceived();
+    event UnauthorizedAccessError(
+        string message
+    );
+    event RequestError(
+        string message
+    );
 
     constructor(address[] _certificate_authorities) public {
         certificate_authorities = _certificate_authorities;
     }
 
     function register(address _owner, uint _type, string _origin, uint _size, uint _price) external returns (bytes32) {
-        require(isCA(msg.sender), "You are not allowed to call register()");
-        require(_type == 0 || _type == 1, "Type must be 0(Synthetic) or 1(Natural)"); //Type 0 = Synthetic, Type 1 = Natural
+        if(!isCA(msg.sender)) {
+            emit UnauthorizedAccessError("You are not allowed to call register()");
+            return NULL_BYTES;
+        }
+        if(!(_type == 0 || _type == 1)) {
+            emit RequestError("Type must be 0(Synthetic) or 1(Natural)"); //Type 0 = Synthetic, Type 1 = Natural
+            return NULL_BYTES;
+        }
 
         Diamond memory d;
         if(_type == 0) {
@@ -72,8 +84,10 @@ contract DiamondTracker2 {
 
         d.id = sha256(abi.encodePacked(_size, _type, _origin)); //creation of the unique ID
 
-        if(!addDiamond(d, _owner))
-            revert("Diamond already exists");
+        if(!addDiamond(d, _owner)) {
+            emit RequestError("Diamond already exists");
+            return NULL_BYTES;
+        }
 
         return d.id;
     }
@@ -82,7 +96,10 @@ contract DiamondTracker2 {
         address oldOwner = msg.sender;
         Diamond memory sellingDiamond;
         sellingDiamond.id = ID;
-        require(isOwner(oldOwner, sellingDiamond), "You are not the owner of the specified diamond");
+        if(isOwner(oldOwner, sellingDiamond)) {
+            emit UnauthorizedAccessError("You are not the owner of the specified diamond");
+            return;
+        }
 
         Diamond[] storage ownedDiamonds = owners[oldOwner];
         for(uint i = 0; i < ownedDiamonds.length; i++) {
@@ -133,8 +150,14 @@ contract DiamondTracker2 {
             diamondPrice: diamondPrice
         });
 
-        require(!equals(sellingDiamond, NULL_DIAMOND), "Must request to buy an existing diamond");
-        require(!(sellingDiamond.diamondOwner == msg.sender), "Sender already owns this diamond");
+        if(equals(sellingDiamond, NULL_DIAMOND)) {
+            emit RequestError("Must request to buy an existing diamond");
+            return;
+        }
+        if(sellingDiamond.diamondOwner == msg.sender) {
+            emit RequestError("Sender already owns this diamond");
+            return;
+        }
 
         DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
         exchange.diamond_id = sellingDiamond.id;
