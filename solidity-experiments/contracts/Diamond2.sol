@@ -110,19 +110,11 @@ contract DiamondTracker2 {
             emit UnauthorizedAccessError("You are not the owner of the specified diamond");
             return;
         }
+        if(!requestExists(msg.sender, newOwner, ID)) {
+            emit RequestError("Request for that diamond does not exist");
+            return;
+        }
 
-        Diamond[] storage ownedDiamonds = owners[msg.sender];
-        for(uint i = 0; i < ownedDiamonds.length; i++) {
-            if(owners[msg.sender][i].id == sellingDiamond.id){
-                delete owners[msg.sender][i];
-            }
-        }
-        for(uint j = 0; j < diamondsList.length; j++) {
-            if (diamondsList[j].id == sellingDiamond.id){
-                diamondsList[j].diamondOwner = newOwner;
-                owners[newOwner].push(diamondsList[j]);
-            }
-        }
         //get the buy requests of the msg.sender
         DiamondExchange[] storage exchangesRequests = diamondExchangeRequests[msg.sender];
         for(uint k = 0; k < exchangesRequests.length; k++) {
@@ -130,6 +122,20 @@ contract DiamondTracker2 {
             if (exchangesRequests[k].diamond_id == sellingDiamond.id){
                 // if that request is related to the person whom received the diamond
                 if (exchangesRequests[k].buyer == newOwner){
+                    Diamond[] storage ownedDiamonds = owners[msg.sender];
+                    // Delete old ownership
+                    for(uint i = 0; i < ownedDiamonds.length; i++) {
+                        if(owners[msg.sender][i].id == sellingDiamond.id){
+                            delete owners[msg.sender][i];
+                        }
+                    }
+                    // Give the diamond ownership to the new owner
+                    for(uint j = 0; j < diamondsList.length; j++) {
+                        if (diamondsList[j].id == sellingDiamond.id){
+                            diamondsList[j].diamondOwner = newOwner;
+                            owners[newOwner].push(diamondsList[j]);
+                        }
+                    }
                     exchangesRequests[k].state = ExchangeState.Finished;
                     //update the buying history of the Diamond
                     diamondExchangeHistory[exchangesRequests[k].diamond_id].push(exchangesRequests[k]);
@@ -240,6 +246,21 @@ contract DiamondTracker2 {
 
     function getNumberOfDiamonds() external view returns (uint) {
         return diamondsList.length;
+    }
+
+    function requestExists(address owner, address buyer, bytes32 diamond_id) internal view returns (bool) {
+        DiamondExchange[] storage exchangesRequests = diamondExchangeRequests[owner];
+        for(uint k = 0; k < exchangesRequests.length; k++) {
+            // Diamond was requested
+            if (exchangesRequests[k].diamond_id == diamond_id){
+                // Requested from that buyer
+                if (exchangesRequests[k].buyer == buyer){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
     }
 
     function isNull(Diamond d) internal view returns (bool) {
