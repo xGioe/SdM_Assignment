@@ -8,6 +8,7 @@ contract DiamondTracker2 {
         DiamondType d_type;
         DiamondProperties properties;
         address diamondOwner;
+        uint diamondPrice;
     }
 
     //Can't declare as constant. Constant non-value types not yet supported
@@ -16,7 +17,8 @@ contract DiamondTracker2 {
         origin: "",
         d_type: DiamondType.Synthetic,
         properties: DiamondProperties(0),
-        diamondOwner: 0x00
+        diamondOwner: 0x00,
+        diamondPrice: 0
     });
 
     struct DiamondProperties {
@@ -28,7 +30,7 @@ contract DiamondTracker2 {
         bytes32 diamond_id;
         address buyer;
         address seller;
-        uint value; //In ether
+        // uint value; //In ether
         ExchangeState state;
     }
 
@@ -52,7 +54,7 @@ contract DiamondTracker2 {
         certificate_authorities = _certificate_authorities;
     }
 
-    function register(address _owner, uint _type, string _origin, uint _size) external returns (bytes32) {
+    function register(address _owner, uint _type, string _origin, uint _size, uint _price) external returns (bytes32) {
         require(isCA(msg.sender), "You are not allowed to call register()");
         require(_type == 0 || _type == 1, "Type must be 0(Synthetic) or 1(Natural)"); //Type 0 = Synthetic, Type 1 = Natural
 
@@ -64,6 +66,7 @@ contract DiamondTracker2 {
         }
         d.origin = _origin;
         d.properties.size = _size;
+        d.diamondPrice = _price;
 
         d.id = sha256(abi.encodePacked(_size, _type, _origin)); //creation of the unique ID
 
@@ -125,16 +128,18 @@ contract DiamondTracker2 {
         DiamondType d_type;
         uint size;
         address diamondOwner;
-        (id, origin, d_type, size, diamondOwner) = this.getDiamondById(diamond_id);
+        uint diamondPrice;
+        (id, origin, d_type, size, diamondOwner, diamondPrice) = this.getDiamondById(diamond_id);
         Diamond memory sellingDiamond = Diamond({
             id: id,
             origin: origin,
             d_type: d_type,
             properties: DiamondProperties(size),
-            diamondOwner: diamondOwner
+            diamondOwner: diamondOwner,
+            diamondPrice: diamondPrice
         });
 
-        //require(!equals(sellingDiamond, NULL_DIAMOND), "Must request to buy an existing diamond");
+        require(!equals(sellingDiamond, NULL_DIAMOND), "Must request to buy an existing diamond");
         require(!(sellingDiamond.diamondOwner == msg.sender), "Sender already owns this diamond");
 
         DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
@@ -165,14 +170,15 @@ contract DiamondTracker2 {
             );
     }
 
-    function getDiamondByIndex(uint index) external view returns (bytes32, string, DiamondType, uint, address) {
+    function getDiamondByIndex(uint index) external view returns (bytes32, string, DiamondType, uint, address, uint) {
         if(index >= diamondsList.length) { //Assuming no diamonds are deleted from the system
             return (
                 NULL_DIAMOND.id,
                 NULL_DIAMOND.origin,
                 NULL_DIAMOND.d_type,
                 NULL_DIAMOND.properties.size,
-                NULL_DIAMOND.diamondOwner
+                NULL_DIAMOND.diamondOwner,
+                NULL_DIAMOND.diamondPrice
             );
         } else {
             return (
@@ -180,12 +186,13 @@ contract DiamondTracker2 {
                 diamondsList[index].origin,
                 diamondsList[index].d_type,
                 diamondsList[index].properties.size,
-                diamondsList[index].diamondOwner
+                diamondsList[index].diamondOwner,
+                diamondsList[index].diamondPrice
             );
         }
     }
 
-    function getDiamondById(bytes32 id) external view returns (bytes32, string, DiamondType, uint, address) {
+    function getDiamondById(bytes32 id) external view returns (bytes32, string, DiamondType, uint, address, uint) {
         for(uint i = 0; i < diamondsList.length; i++) {
             if(diamondsList[i].id == id){
                 return (
@@ -193,11 +200,12 @@ contract DiamondTracker2 {
                   diamondsList[i].origin,
                   diamondsList[i].d_type,
                   diamondsList[i].properties.size,
-                  diamondsList[i].diamondOwner
+                  diamondsList[i].diamondOwner,
+                  diamondsList[i].diamondPrice
                 );
             }
         }
-        return (NULL_DIAMOND.id, NULL_DIAMOND.origin, NULL_DIAMOND.d_type, NULL_DIAMOND.properties.size, NULL_DIAMOND.diamondOwner);
+        return (NULL_DIAMOND.id, NULL_DIAMOND.origin, NULL_DIAMOND.d_type, NULL_DIAMOND.properties.size, NULL_DIAMOND.diamondOwner, NULL_DIAMOND.diamondPrice);
     }
 
     function getNumberOfDiamonds() external view returns (uint) {
@@ -259,5 +267,9 @@ contract DiamondTracker2 {
           d.d_type,
           d.properties.size
         );
+    }
+
+    function getDiamondExchangeHistoryLenght(bytes32 diamond_id) external view returns (uint) {
+      return diamondExchangeHistory[diamond_id].length;
     }
 }
