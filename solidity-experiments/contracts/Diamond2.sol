@@ -7,7 +7,8 @@ contract DiamondTracker2 {
         string origin;
         DiamondType d_type;
         DiamondProperties properties;
-        address diamondOwner;
+        address owner;
+        //TODO Parameters Giovanni asked for
     }
 
     //Can't declare as constant. Constant non-value types not yet supported
@@ -16,7 +17,7 @@ contract DiamondTracker2 {
         origin: "",
         d_type: DiamondType.Synthetic,
         properties: DiamondProperties(0),
-        diamondOwner: 0x00
+        owner: 0x00
     });
 
     struct DiamondProperties {
@@ -27,13 +28,13 @@ contract DiamondTracker2 {
     struct DiamondExchange {
         bytes32 diamond_id;
         address buyer;
-        address diamondOwner;
+        address owner;
         uint value; //In ether
         ExchangeState state;
     }
 
     enum DiamondType { Synthetic, Natural }
-    address[] public certificate_authorities;
+    address[] public certificate_authorities; //TODO Should this be public??
     // mapping(bytes32 => address) owners;
     //the mapping between each owner (address) and the diamons possessed
     mapping (address => Diamond[]) public owners;
@@ -75,6 +76,7 @@ contract DiamondTracker2 {
     }
 
     function sell(bytes32 ID, address oldOwner, address newOwner) private {
+        //TODO Check if pending requests
         Diamond memory sellingDiamond;
         sellingDiamond.id = ID;
         require(isOwner(oldOwner, sellingDiamond), "You are not the owner of the specified diamond");
@@ -89,7 +91,7 @@ contract DiamondTracker2 {
         for(uint j = 0; j < diamondsList.length; j++) {
             if (diamondsList[j].id == sellingDiamond.id){
                 owners[newOwner].push(diamondsList[j]);
-                diamondsList[j].diamondOwner = newOwner;
+                diamondsList[j].owner = newOwner;
             }
         }
         emit diamondSold();
@@ -102,44 +104,42 @@ contract DiamondTracker2 {
         string memory origin;
         DiamondType d_type;
         uint size;
-        address diamondOwner;
-        (id, origin, d_type, size, diamondOwner) = this.getDiamondById(diamond_id);
+        address owner;
+        (id, origin, d_type, size, owner) = this.getDiamondById(diamond_id);
         Diamond memory sellingDiamond = Diamond({
             id: id,
             origin: origin,
             d_type: d_type,
             properties: DiamondProperties(size),
-            diamondOwner: diamondOwner
+            owner: owner
         });
 
         require(!equals(sellingDiamond, NULL_DIAMOND), "Must request to buy an existing diamond");
-        require(!(sellingDiamond.diamondOwner == msg.sender), "Sender already owns this diamond");
+        require(!(sellingDiamond.owner == msg.sender), "Sender already owns this diamond");
 
 
 
         DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
         exchange.diamond_id = sellingDiamond.id;
         exchange.buyer = msg.sender;
-        exchange.diamondOwner = sellingDiamond.diamondOwner;
+        exchange.owner = sellingDiamond.owner;
         exchange.value = msg.value;
         exchange.state = ExchangeState.Pending;
 
         exchanges.push(exchange);
 
         emit diamondBuyingRequest();
-        //TODO Logic of the function
-
     }
 
     function buyingRequestsPending() external payable {
-        address _diamondOwner = msg.sender;
+        address _owner = msg.sender;
         for(uint i = 0; i < exchanges.length; i++) {
-            if(exchanges[i].diamondOwner == _diamondOwner){
+            if(exchanges[i].owner == _owner){
                 if(exchanges[i].state == ExchangeState.Pending) {
-                    sell(exchanges[i].diamond_id, _diamondOwner, exchanges[i].buyer);
+                    sell(exchanges[i].diamond_id, _owner, exchanges[i].buyer);
                     exchanges[i].state = ExchangeState.Approved;
                     for (uint j = ++i; j < exchanges.length; j++) {
-                        if(exchanges[i].diamondOwner == _diamondOwner && exchanges[i].state == ExchangeState.Pending) {
+                        if(exchanges[i].owner == _owner && exchanges[i].state == ExchangeState.Pending) {
                             exchanges[i].state == ExchangeState.Finished;
                         }
                     }
@@ -153,7 +153,7 @@ contract DiamondTracker2 {
     // function getPendingBuyingRequest() external view returns (bytes32, address, uint) {
     //     address _seller = msg.sender;
     //     for(uint i = 0; i < exchanges.length; i++) {
-    //         if(exchanges[i].diamondOwner == _seller && exchanges[i].state == ExchangeState.Pending){
+    //         if(exchanges[i].owner == _seller && exchanges[i].state == ExchangeState.Pending){
     //           return(
     //             exchanges[i].diamond_id,
     //             exchanges[i].buyer,
@@ -170,7 +170,7 @@ contract DiamondTracker2 {
                 NULL_DIAMOND.origin,
                 NULL_DIAMOND.d_type,
                 NULL_DIAMOND.properties.size,
-                NULL_DIAMOND.diamondOwner
+                NULL_DIAMOND.owner
             );
         } else {
             return (
@@ -178,7 +178,7 @@ contract DiamondTracker2 {
                 diamondsList[index].origin,
                 diamondsList[index].d_type,
                 diamondsList[index].properties.size,
-                diamondsList[index].diamondOwner
+                diamondsList[index].owner
             );
         }
     }
@@ -191,29 +191,36 @@ contract DiamondTracker2 {
                   diamondsList[i].origin,
                   diamondsList[i].d_type,
                   diamondsList[i].properties.size,
-                  diamondsList[i].diamondOwner
+                  diamondsList[i].owner
                 );
             }
         }
-        return (NULL_DIAMOND.id, NULL_DIAMOND.origin, NULL_DIAMOND.d_type, NULL_DIAMOND.properties.size, NULL_DIAMOND.diamondOwner);
+        return (NULL_DIAMOND.id, NULL_DIAMOND.origin, NULL_DIAMOND.d_type, NULL_DIAMOND.properties.size, NULL_DIAMOND.owner);
     }
 
     function getNumberOfDiamonds() external view returns (uint) {
         return diamondsList.length;
     }
 
+/*
+    function getNumberOfPendingRequests(address owner) external view returns (uint) {
+        uint pendingRequests = 0;
+        for(uint i = 0; i < exchanges.length; i++) {
+            if(exchanges[i].owner)
+        }
+    }
+*/
     function equals(Diamond d1, Diamond d2) internal pure returns (bool) {
         return keccak256(encodeDiamond(d1)) == keccak256(encodeDiamond(d2));
     }
 
     function addDiamond(Diamond d, address owner) private returns (bool) {
-        //TODO: Check if diamond already exists
         for(uint i = 0; i < diamondsList.length; i++) {
             if(equals(d, diamondsList[i]))
               return false;
         }
       // NOTE: we expect that if diamond is already in diamondsList then it has a owner
-        d.diamondOwner = owner;
+        d.owner = owner;
         diamondsList.push(d);
         owners[owner].push(d);
         return true;
