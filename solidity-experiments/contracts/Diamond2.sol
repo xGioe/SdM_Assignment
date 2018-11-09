@@ -265,4 +265,8 @@ contract DiamondTracker2 {
     function getDiamondExchangeHistoryLenght(bytes32 diamond_id) external view returns (uint) {
         return diamondExchangeHistory[diamond_id].length;
     }
+
+    function getNumberOfCA() external view returns (uint) {
+        return certificate_authorities.length;
+    }
 }
