@@ -134,12 +134,13 @@ contract DiamondTracker2 {
             diamondOwner: diamondOwner
         });
 
-        require(!equals(sellingDiamond, NULL_DIAMOND), "Must request to buy an existing diamond");
+        //require(!equals(sellingDiamond, NULL_DIAMOND), "Must request to buy an existing diamond");
         require(!(sellingDiamond.diamondOwner == msg.sender), "Sender already owns this diamond");
 
         DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
         exchange.diamond_id = sellingDiamond.id;
         exchange.buyer = msg.sender;
+        exchange.seller = sellingDiamond.diamondOwner;
         // exchange.value = msg.value;
         exchange.state = ExchangeState.Pending;
 
@@ -219,7 +220,7 @@ contract DiamondTracker2 {
 
         //register event to diamond history
 
-        DiamondExchange storage exchange; //This memory exchange will be converted to storage once pushed into the array
+        DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
         exchange.diamond_id = d.id;
         exchange.buyer = owner;
         exchange.seller = owner;
