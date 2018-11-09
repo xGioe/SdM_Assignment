@@ -133,8 +133,8 @@ contract DiamondTracker2 {
             diamondPrice: diamondPrice
         });
 
-        require(!equals(sellingDiamond, NULL_DIAMOND), "Must request to buy an existing diamond");
-        require(!(sellingDiamond.diamondOwner == msg.sender), "Sender already owns this diamond");
+        require(equals(sellingDiamond, NULL_DIAMOND), "Must request to buy an existing diamond");
+        require(sellingDiamond.diamondOwner == msg.sender, "Sender already owns this diamond");
 
         DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
         exchange.diamond_id = sellingDiamond.id;
