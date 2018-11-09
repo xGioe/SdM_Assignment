@@ -20,7 +20,7 @@ contract DiamondTracker2 {
         diamondOwner: 0x00,
         diamondPrice: 0
     });
-    
+
     //For simplicity we narrowed down the number of properties
     struct DiamondProperties {
         uint size;
@@ -40,8 +40,8 @@ contract DiamondTracker2 {
     Diamond[] diamondsList;
 
     //enums
-    enum ExchangeState { Pending, Approved, Rejected, Finished} 
-    enum DiamondType { Synthetic, Natural }    
+    enum ExchangeState { Pending, Approved, Rejected, Finished}
+    enum DiamondType { Synthetic, Natural }
 
     //mappings
     mapping (address => DiamondExchange[]) diamondExchangeRequests;
@@ -197,11 +197,11 @@ contract DiamondTracker2 {
             }
         }
         return (
-            NULL_DIAMOND.id, 
-            NULL_DIAMOND.origin, 
-            NULL_DIAMOND.d_type, 
-            NULL_DIAMOND.properties.size, 
-            NULL_DIAMOND.diamondOwner, 
+            NULL_DIAMOND.id,
+            NULL_DIAMOND.origin,
+            NULL_DIAMOND.d_type,
+            NULL_DIAMOND.properties.size,
+            NULL_DIAMOND.diamondOwner,
             NULL_DIAMOND.diamondPrice
         );
     }
@@ -266,4 +266,3 @@ contract DiamondTracker2 {
         return diamondExchangeHistory[diamond_id].length;
     }
 }
-
