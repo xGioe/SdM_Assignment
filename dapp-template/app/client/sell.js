@@ -2,7 +2,7 @@
   Minimal Dapp template
  */
 
-const contractAddress = '0xe07cc138e77ffd246768fc989dc71d83df29074c'
+const contractAddress = '0x96eec88b86bc1497772679fca58aa0e8ff0dbf33'
 const contractJSON = {
   "contractName": "DiamondTracker2",
   "abi": [
