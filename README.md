@@ -18,14 +18,14 @@ The project is structured as follows:
 ### Starting the local network
 *See README.md in docker/ dir*
 
-### Deploy the smart-contract
+### Deploying the smart-contract
 In **solidity-experiments/** run: `truffle migrate`
 The smart contract we use is Dimond2.sol
 
-### Access the node with a wallet DApp
+### Accessing the node with a wallet 
 In **etherwallet/** open *index.html* and connect to one of the node
 
-## dAPP
+### Accessing the node with our dApp
 *See README.md in dapp-template/*
 
 ***Note***: This project is a fork from [javahippie](https://github.com/javahippie/geth-dev) repo. All credits reserved.
