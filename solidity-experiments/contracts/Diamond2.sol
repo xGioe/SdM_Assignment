@@ -110,9 +110,20 @@ contract DiamondTracker2 {
             emit UnauthorizedAccessError("You are not the owner of the specified diamond");
             return;
         }
-        if(!requestExists(msg.sender, newOwner, ID)) {
-            emit RequestError("Request for that diamond does not exist");
-            return;
+
+        Diamond[] storage ownedDiamonds = owners[msg.sender];
+        // Delete old ownership
+        for(uint i = 0; i < ownedDiamonds.length; i++) {
+            if(owners[msg.sender][i].id == sellingDiamond.id){
+                delete owners[msg.sender][i];
+            }
+        }
+        // Give the diamond ownership to the new owner
+        for(uint j = 0; j < diamondsList.length; j++) {
+            if (diamondsList[j].id == sellingDiamond.id){
+                diamondsList[j].diamondOwner = newOwner;
+                owners[newOwner].push(diamondsList[j]);
+            }
         }
 
         //get the buy requests of the msg.sender
@@ -122,20 +133,6 @@ contract DiamondTracker2 {
             if (exchangesRequests[k].diamond_id == sellingDiamond.id){
                 // if that request is related to the person whom received the diamond
                 if (exchangesRequests[k].buyer == newOwner){
-                    Diamond[] storage ownedDiamonds = owners[msg.sender];
-                    // Delete old ownership
-                    for(uint i = 0; i < ownedDiamonds.length; i++) {
-                        if(owners[msg.sender][i].id == sellingDiamond.id){
-                            delete owners[msg.sender][i];
-                        }
-                    }
-                    // Give the diamond ownership to the new owner
-                    for(uint j = 0; j < diamondsList.length; j++) {
-                        if (diamondsList[j].id == sellingDiamond.id){
-                            diamondsList[j].diamondOwner = newOwner;
-                            owners[newOwner].push(diamondsList[j]);
-                        }
-                    }
                     exchangesRequests[k].state = ExchangeState.Finished;
                     //update the buying history of the Diamond
                     diamondExchangeHistory[exchangesRequests[k].diamond_id].push(exchangesRequests[k]);
