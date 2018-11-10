@@ -2,7 +2,7 @@
   Minimal Dapp template
  */
 
-const contractAddress = '0xacb79e8095499f6744db95463806ba0ff9f11703'
+const contractAddress = '0x06ffe7da847332d2b5e8a738db23aef949b8fbf2'
 const contractJSON ={
   "contractName": "DiamondTracker2",
   "abi": [
@@ -23651,10 +23651,11 @@ $(document).ready(() => {
 
 
 
-  // $('#certification-authorities').text(async e => {
-  //   e.preventDefault()
-  //   const storageVal = $('#value').val()
-  //   const tx = await contract.setStorage(storageVal, { from: web3.eth.accounts[0] })
-  //   alert('Storage val set, tx:' + tx)
-  // })
+  $('#sell-diamond-button').click(async e => {
+    e.preventDefault();
+    const diamondID = $('#diamondId').val();
+    const newOwnerAddress = $('#newOwner').val();
+    const tx = await contract.sell(diamondID, newOwnerAddress, { from: web3.eth.accounts[0], gas: 300000 });
+    alert('Diamond sold, tx:' + tx)
+  })
 })
