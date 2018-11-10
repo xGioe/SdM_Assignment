@@ -43,7 +43,7 @@
   <!-- Navigation -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container">
-      <div class="navbar-brand">Diamond Tracker</div>
+      <div class="navbar-brand" id="account-navbar-brand"></div>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -70,21 +70,25 @@
   <div class="row row-content">
     <div class="col">
       <div class="row">
-        <h2>Certification Authorities</h2>
-        <div class="card" id="certification-authorities">
-          <ul class="list-group list-group-flush">
-          </ul>
+        <div class="col">
+          <h2>Certification Authorities</h2>
+          <div class="card" id="certification-authorities">
+            <ul class="list-group list-group-flush">
+            </ul>
+          </div>
         </div>
       </div>
       <div class="row">
-        <form>
-          <div class="form-group">
-            <h2>Buy Diamond</h2>
-            <label for="formGroupExampleInput">Diamond ID</label>
-            <input type="text" class="form-control" id="formGroupExampleInput">
-          </div>
-          <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
+        <div class="col">
+          <form>
+            <div class="form-group">
+              <h2>Buy Diamond</h2>
+              <label for="formGroupExampleInput">Diamond ID</label>
+              <input type="text" class="form-control" id="diamond-id-input">
+            </div>
+            <button type="button" class="btn btn-primary" id="buy-diamond-button">Submit</button>
+          </form>
+        </div>
       </div>
     </div>
     <!-- col-8 -->
@@ -98,12 +102,11 @@
 <!-- /.container -->
 
 <!-- Footer -->
-<footer class="py-5 bg-dark">
+<!-- <footer class="py-5 bg-dark">
   <div class="container-fluid">
     <p class="m-0 text-center text-white">Diamond Tracker</p>
   </div>
-  <!-- /.container -->
-</footer>
+</footer> -->
 
 <!-- Bootstrap core JavaScript -->
 <script src="vendor/jquery/jquery.min.js"></script>

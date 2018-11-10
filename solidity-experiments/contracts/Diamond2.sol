@@ -269,4 +269,8 @@ contract DiamondTracker2 {
     function getNumberOfCA() external view returns (uint) {
         return certificate_authorities.length;
     }
+
+    function getNumberOfOwnedDiamonds(address owner) external view returns (uint) {
+        return owners[owner].length;
+    }
 }

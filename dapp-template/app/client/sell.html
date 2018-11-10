@@ -43,7 +43,7 @@
   <!-- Navigation -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container">
-      <div class="navbar-brand">Diamond Tracker</div>
+      <div class="navbar-brand" id="account-navbar-brand"></div>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -52,8 +52,8 @@
           <li class="nav-item">
             <a class="nav-link" href="home.html">Diamonds</a>
           </li>
-          <li class="nav-item active">
-            <a class="nav-link" href="sell.html">Sell</a>
+          <li class="nav-item">
+            <a class="nav-link active" href="sell.html">Sell</a>
             <span class="sr-only">(current)</span>
           </li>
           <li class="nav-item">
@@ -62,49 +62,52 @@
       </ul>
     </div>
   </div>
-</nav>
+  </nav>
 
-
-<!-- Page Content -->
-<div class="container">
-  <div class="row row-content">
-    <div class="col-auto">
-      <h2>Sell Diamond</h2>
-      <form>
-        <div class="form-group">
-          <label for="formGroupExampleInput">Diamond ID</label>
-          <input type="text" class="form-control" id="diamondId">
-        </div>
-        <div class="form-group">
-          <label for="formGroupExampleInput2">New Owner Address</label>
-          <input type="text" class="form-control" id="newOwner">
-        </div>
-        <button type="button" class="btn btn-primary" id="sell-diamond-button">Submit</button>
-      </form>
+  <!-- Page Content -->
+  <main class="container" role="main">
+    <div class="row row-content">
+      <div class="col">
+        <h2>Sell Diamond</h2>
+        <form>
+          <div class="form-group">
+            <label for="formGroupExampleInput">Diamond ID</label>
+            <input type="text" class="form-control" id="diamond-id-input">
+          </div>
+          <div class="form-group">
+            <label for="formGroupExampleInput2">New Owner Address</label>
+            <input type="text" class="form-control" id="new-owner-input">
+          </div>
+          <button type="button" class="btn btn-primary" id="sell-diamond-button">Submit</button>
+        </form>
+      </div>
+      <!-- col-8 -->
+      <div class="col" id="pending-requests">
+        <h2>Pending Requests</h2>
+      </div>
+      <!-- col-8 -->
+      <div class="col" id="owner-diamonds">
+        <h2>Owner Diamonds</h2>
+      </div>
+      <!-- col-8 -->
     </div>
-    <!-- col-8 -->
-    <div class="col-auto" id="pending-requests">
-      <h2>Pending Requests</h2>
-    </div>
-    <!-- col-8 -->
-  </div>
-</div>
-<!-- /.container -->
+  </main>
 
-
-
-
-<!-- Footer -->
-<footer class="py-5 bg-dark">
-  <div class="container">
-    <p class="m-0 text-center text-white">Copyright &copy; Your Website 2017</p>
-  </div>
   <!-- /.container -->
-</footer>
 
-<!-- Bootstrap core JavaScript -->
-<script src="vendor/jquery/jquery.min.js"></script>
-<script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+
+
+  <!-- Footer -->
+  <!-- <footer class="py-5 bg-dark footer">
+    <div class="container">
+      <p class="m-0 text-center text-white">Copyright &copy; Your Website 2017</p>
+    </div>
+  </footer> -->
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
 
 
