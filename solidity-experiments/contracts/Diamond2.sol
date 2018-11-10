@@ -11,7 +11,6 @@ contract DiamondTracker2 {
         uint diamondPrice;
     }
 
-    //Can't declare as constant. Constant non-value types not yet supported
     Diamond NULL_DIAMOND = Diamond({
         id: "0x00",
         origin: "",
@@ -20,6 +19,7 @@ contract DiamondTracker2 {
         diamondOwner: 0x00,
         diamondPrice: 0
     });
+    bytes32 constant NULL_BYTES = 0x00;
 
     //For simplicity we narrowed down the number of properties
     struct DiamondProperties {
@@ -44,21 +44,33 @@ contract DiamondTracker2 {
     enum DiamondType { Synthetic, Natural }
 
     //mappings
-    mapping (address => DiamondExchange[]) diamondExchangeRequests;
-    mapping (bytes32 => DiamondExchange[]) public diamondExchangeHistory;
+    mapping (address => DiamondExchange[]) diamondExchangeRequests; //owner -> exchanges[]
+    mapping (bytes32 => DiamondExchange[]) public diamondExchangeHistory; //diamond -> exchanges[]
     mapping (address => Diamond[]) public owners; //the mapping between each owner (address) and the diamons possessed
 
     //events
     event diamondSold();
     event diamondBuyingRequestReceived();
+    event UnauthorizedAccessError(
+        string message
+    );
+    event RequestError(
+        string message
+    );
 
     constructor(address[] _certificate_authorities) public {
         certificate_authorities = _certificate_authorities;
     }
 
     function register(address _owner, uint _type, string _origin, uint _size, uint _price) external returns (bytes32) {
-        require(isCA(msg.sender), "You are not allowed to call register()");
-        require(_type == 0 || _type == 1, "Type must be 0(Synthetic) or 1(Natural)"); //Type 0 = Synthetic, Type 1 = Natural
+        if(!isCA(msg.sender)) {
+            emit UnauthorizedAccessError("You are not allowed to call register()");
+            return NULL_BYTES;
+        }
+        if(!(_type == 0 || _type == 1)) {
+            emit RequestError("Type must be 0(Synthetic) or 1(Natural)"); //Type 0 = Synthetic, Type 1 = Natural
+            return NULL_BYTES;
+        }
 
         Diamond memory d;
         if(_type == 0) {
@@ -72,32 +84,50 @@ contract DiamondTracker2 {
 
         d.id = sha256(abi.encodePacked(_size, _type, _origin)); //creation of the unique ID
 
-        if(!addDiamond(d, _owner))
-            revert("Diamond already exists");
+        if(!addDiamond(d, _owner)) {
+            emit RequestError("Diamond already exists");
+            return NULL_BYTES;
+        }
 
         return d.id;
     }
 
     function sell(bytes32 ID, address newOwner) external {
-        address oldOwner = msg.sender;
         Diamond memory sellingDiamond;
-        sellingDiamond.id = ID;
-        require(isOwner(oldOwner, sellingDiamond), "You are not the owner of the specified diamond");
+        (
+            sellingDiamond.id,
+            sellingDiamond.origin,
+            sellingDiamond.d_type,
+            sellingDiamond.properties.size,
+             ,//discarded sellingDiamond.diamondOwner
+             //discarded sellingDiamond.diamondValue
+        ) = getDiamondById(ID);
+        if(isNull(sellingDiamond)) {
+            emit RequestError("Diamond does not exist");
+            return;
+        }
+        if(!isOwner(msg.sender, sellingDiamond)) {
+            emit UnauthorizedAccessError("You are not the owner of the specified diamond");
+            return;
+        }
 
-        Diamond[] storage ownedDiamonds = owners[oldOwner];
+        Diamond[] storage ownedDiamonds = owners[msg.sender];
+        // Delete old ownership
         for(uint i = 0; i < ownedDiamonds.length; i++) {
-            if(owners[oldOwner][i].id == sellingDiamond.id){
-                delete owners[oldOwner][i];
+            if(owners[msg.sender][i].id == sellingDiamond.id){
+                delete owners[msg.sender][i];
             }
         }
+        // Give the diamond ownership to the new owner
         for(uint j = 0; j < diamondsList.length; j++) {
             if (diamondsList[j].id == sellingDiamond.id){
                 diamondsList[j].diamondOwner = newOwner;
                 owners[newOwner].push(diamondsList[j]);
             }
         }
+
         //get the buy requests of the msg.sender
-        DiamondExchange[] storage exchangesRequests = diamondExchangeRequests[oldOwner];
+        DiamondExchange[] storage exchangesRequests = diamondExchangeRequests[msg.sender];
         for(uint k = 0; k < exchangesRequests.length; k++) {
             // if a request for the diamond_id is found
             if (exchangesRequests[k].diamond_id == sellingDiamond.id){
@@ -122,7 +152,7 @@ contract DiamondTracker2 {
         uint size;
         address diamondOwner;
         uint diamondPrice;
-        (id, origin, d_type, size, diamondOwner, diamondPrice) = this.getDiamondById(diamond_id);
+        (id, origin, d_type, size, diamondOwner, diamondPrice) = getDiamondById(diamond_id);
 
         Diamond memory sellingDiamond = Diamond({
             id: id,
@@ -133,16 +163,26 @@ contract DiamondTracker2 {
             diamondPrice: diamondPrice
         });
 
-        require(equals(sellingDiamond, NULL_DIAMOND), "Must request to buy an existing diamond");
-        require(sellingDiamond.diamondOwner == msg.sender, "Sender already owns this diamond");
+        if(isNull(sellingDiamond)) {
+            emit RequestError("Must request to buy an existing diamond");
+            return;
+        }
+        if(sellingDiamond.diamondOwner == msg.sender) {
+            emit RequestError("Sender already owns this diamond");
+            return;
+        }
 
+        // Building the Diamond Exchange object
         DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
         exchange.diamond_id = sellingDiamond.id;
         exchange.buyer = msg.sender;
         exchange.seller = sellingDiamond.diamondOwner;
-        // exchange.value = msg.value;
         exchange.state = ExchangeState.Pending;
 
+        if(requestExists(exchange.seller, exchange.buyer, exchange.diamond_id, exchange.state)) {
+            emit RequestError("You already have a buying request for this diamond");
+            return;
+        }
         diamondExchangeRequests[sellingDiamond.diamondOwner].push(exchange);
 
         emit diamondBuyingRequestReceived();
@@ -161,7 +201,7 @@ contract DiamondTracker2 {
             );
     }
 
-    function getDiamondByIndex(uint index) external view returns (bytes32, string, DiamondType, uint, address, uint) {
+    function getDiamondByIndex(uint index) public view returns (bytes32, string, DiamondType, uint, address, uint) {
         if(index >= diamondsList.length) { //Assuming no diamonds are deleted from the system
             return (
                 NULL_DIAMOND.id,
@@ -183,7 +223,7 @@ contract DiamondTracker2 {
         }
     }
 
-    function getDiamondById(bytes32 id) external view returns (bytes32, string, DiamondType, uint, address, uint) {
+    function getDiamondById(bytes32 id) public view returns (bytes32, string, DiamondType, uint, address, uint) {
         for(uint i = 0; i < diamondsList.length; i++) {
             if(diamondsList[i].id == id){
                 return (
@@ -208,6 +248,36 @@ contract DiamondTracker2 {
 
     function getNumberOfDiamonds() external view returns (uint) {
         return diamondsList.length;
+    }
+
+    function requestExists(address owner, address buyer, bytes32 diamond_id) internal view returns (bool) {
+        DiamondExchange[] storage exchangesRequests = diamondExchangeRequests[owner];
+        for(uint k = 0; k < exchangesRequests.length; k++) {
+            // Diamond was requested
+            if (exchangesRequests[k].diamond_id == diamond_id &&
+            exchangesRequests[k].buyer == buyer){
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    function requestExists(address owner, address buyer, bytes32 diamond_id, ExchangeState state) internal view returns (bool){
+        DiamondExchange[] storage exchangesRequests = diamondExchangeRequests[owner];
+        for(uint k = 0; k < exchangesRequests.length; k++) {
+            if (exchangesRequests[k].diamond_id == diamond_id &&
+            exchangesRequests[k].buyer == buyer &&
+            exchangesRequests[k].state == state){
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    function isNull(Diamond d) internal view returns (bool) {
+        return equals(d, NULL_DIAMOND);
     }
 
     function equals(Diamond d1, Diamond d2) internal pure returns (bool) {
@@ -264,5 +334,24 @@ contract DiamondTracker2 {
 
     function getDiamondExchangeHistoryLenght(bytes32 diamond_id) external view returns (uint) {
         return diamondExchangeHistory[diamond_id].length;
+    }
+
+    function getNumberOfCA() external view returns (uint) {
+        return certificate_authorities.length;
+    }
+
+    function getNumberOfOwnedDiamonds(address owner) external view returns (uint) {
+        return owners[owner].length;
+    }
+
+    function getOwnedDiamondsByIndex(address owner, uint index) external view returns (bytes32, string, DiamondType, uint, address, uint) {
+        return (
+                  owners[owner][index].id,
+                  owners[owner][index].origin,
+                  owners[owner][index].d_type,
+                  owners[owner][index].properties.size,
+                  owners[owner][index].diamondOwner,
+                  owners[owner][index].diamondPrice
+                );
     }
 }
