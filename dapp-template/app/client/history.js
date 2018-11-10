@@ -28247,7 +28247,7 @@ var contractJSON = {
 
 $(document).ready(() => {
   window.web3 = new Web3(
-    new Web3.providers.HttpProvider('http://localhost:8545')
+    new Web3.providers.HttpProvider('http://localhost:8547')
   )
   window.contract = web3.eth.contract(contractJSON.abi).at(contractAddress);
 
