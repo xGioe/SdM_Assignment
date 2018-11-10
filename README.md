@@ -26,6 +26,6 @@ The smart contract we use is Dimond2.sol
 In **etherwallet/** open *index.html* and connect to one of the node
 
 ## dAPP
-*See README.md in dapp-template/**
+*See README.md in dapp-template/*
 
 ***Note***: This project is a fork from [javahippie](https://github.com/javahippie/geth-dev) repo. All credits reserved.
