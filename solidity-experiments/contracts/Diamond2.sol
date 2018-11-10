@@ -44,8 +44,8 @@ contract DiamondTracker2 {
     enum DiamondType { Synthetic, Natural }    
 
     //mappings
-    mapping (address => DiamondExchange[]) diamondExchangeRequests;
-    mapping (bytes32 => DiamondExchange[]) public diamondExchangeHistory;
+    mapping (address => DiamondExchange[]) diamondExchangeRequests; //owner -> exchanges[]
+    mapping (bytes32 => DiamondExchange[]) public diamondExchangeHistory; //diamond -> exchanges[]
     mapping (address => Diamond[]) public owners; //the mapping between each owner (address) and the diamons possessed
 
     //events
@@ -172,12 +172,17 @@ contract DiamondTracker2 {
             return;
         }
 
+        // Building the Diamond Exchange object
         DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
         exchange.diamond_id = sellingDiamond.id;
         exchange.buyer = msg.sender;
         exchange.seller = sellingDiamond.diamondOwner;
         exchange.state = ExchangeState.Pending;
 
+        if(requestExists(exchange.seller, exchange.buyer, exchange.diamond_id, exchange.state)) {
+            emit RequestError("You already have a buying request for this diamond");
+            return;
+        }
         diamondExchangeRequests[sellingDiamond.diamondOwner].push(exchange);
 
         emit diamondBuyingRequestReceived();
@@ -249,13 +254,24 @@ contract DiamondTracker2 {
         DiamondExchange[] storage exchangesRequests = diamondExchangeRequests[owner];
         for(uint k = 0; k < exchangesRequests.length; k++) {
             // Diamond was requested
-            if (exchangesRequests[k].diamond_id == diamond_id){
-                // Requested from that buyer
-                if (exchangesRequests[k].buyer == buyer){
-                    return true;
-                } else {
-                    return false;
-                }
+            if (exchangesRequests[k].diamond_id == diamond_id &&
+            exchangesRequests[k].buyer == buyer){
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    function requestExists(address owner, address buyer, bytes32 diamond_id, ExchangeState state) internal view returns (bool){
+        DiamondExchange[] storage exchangesRequests = diamondExchangeRequests[owner];
+        for(uint k = 0; k < exchangesRequests.length; k++) {
+            if (exchangesRequests[k].diamond_id == diamond_id &&
+            exchangesRequests[k].buyer == buyer &&
+            exchangesRequests[k].state == state){
+                return true;
+            } else {
+                return false;
             }
         }
     }
