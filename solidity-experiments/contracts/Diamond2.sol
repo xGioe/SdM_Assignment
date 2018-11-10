@@ -20,7 +20,7 @@ contract DiamondTracker2 {
         diamondPrice: 0
     });
     bytes32 constant NULL_BYTES = 0x00;
-    
+
     //For simplicity we narrowed down the number of properties
     struct DiamondProperties {
         uint size;
@@ -40,8 +40,8 @@ contract DiamondTracker2 {
     Diamond[] diamondsList;
 
     //enums
-    enum ExchangeState { Pending, Approved, Rejected, Finished} 
-    enum DiamondType { Synthetic, Natural }    
+    enum ExchangeState { Pending, Approved, Rejected, Finished}
+    enum DiamondType { Synthetic, Natural }
 
     //mappings
     mapping (address => DiamondExchange[]) diamondExchangeRequests; //owner -> exchanges[]
@@ -95,10 +95,10 @@ contract DiamondTracker2 {
     function sell(bytes32 ID, address newOwner) external {
         Diamond memory sellingDiamond;
         (
-            sellingDiamond.id, 
-            sellingDiamond.origin, 
-            sellingDiamond.d_type, 
-            sellingDiamond.properties.size, 
+            sellingDiamond.id,
+            sellingDiamond.origin,
+            sellingDiamond.d_type,
+            sellingDiamond.properties.size,
              ,//discarded sellingDiamond.diamondOwner
              //discarded sellingDiamond.diamondValue
         ) = getDiamondById(ID);
@@ -237,11 +237,11 @@ contract DiamondTracker2 {
             }
         }
         return (
-            NULL_DIAMOND.id, 
-            NULL_DIAMOND.origin, 
-            NULL_DIAMOND.d_type, 
-            NULL_DIAMOND.properties.size, 
-            NULL_DIAMOND.diamondOwner, 
+            NULL_DIAMOND.id,
+            NULL_DIAMOND.origin,
+            NULL_DIAMOND.d_type,
+            NULL_DIAMOND.properties.size,
+            NULL_DIAMOND.diamondOwner,
             NULL_DIAMOND.diamondPrice
         );
     }
@@ -335,5 +335,23 @@ contract DiamondTracker2 {
     function getDiamondExchangeHistoryLenght(bytes32 diamond_id) external view returns (uint) {
         return diamondExchangeHistory[diamond_id].length;
     }
-}
 
+    function getNumberOfCA() external view returns (uint) {
+        return certificate_authorities.length;
+    }
+
+    function getNumberOfOwnedDiamonds(address owner) external view returns (uint) {
+        return owners[owner].length;
+    }
+
+    function getOwnedDiamondsByIndex(address owner, uint index) external view returns (bytes32, string, DiamondType, uint, address, uint) {
+        return (
+                  owners[owner][index].id,
+                  owners[owner][index].origin,
+                  owners[owner][index].d_type,
+                  owners[owner][index].properties.size,
+                  owners[owner][index].diamondOwner,
+                  owners[owner][index].diamondPrice
+                );
+    }
+}
