@@ -18,6 +18,9 @@ The project is structured as follows:
 ### Starting the local network
 *See README.md in docker/ dir*
 
+### Open a blockchain explorer
+Through browser connect to port 8000
+
 ### Deploying the smart-contract
 In **solidity-experiments/** run: `truffle migrate`
 The smart contract we use is Dimond2.sol
