@@ -322,4 +322,23 @@ contract DiamondTracker2 {
     function getDiamondExchangeHistoryLenght(bytes32 diamond_id) external view returns (uint) {
         return diamondExchangeHistory[diamond_id].length;
     }
+
+    function getNumberOfCA() external view returns (uint) {
+        return certificate_authorities.length;
+    }
+
+    function getNumberOfOwnedDiamonds(address owner) external view returns (uint) {
+        return owners[owner].length;
+    }
+
+    function getOwnedDiamondsByIndex(address owner, uint index) external view returns (bytes32, string, DiamondType, uint, address, uint) {
+        return (
+                  owners[owner][index].id,
+                  owners[owner][index].origin,
+                  owners[owner][index].d_type,
+                  owners[owner][index].properties.size,
+                  owners[owner][index].diamondOwner,
+                  owners[owner][index].diamondPrice
+                );
+    }
 }

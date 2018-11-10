@@ -1,4 +1,9 @@
-{
+/*
+  Minimal Dapp template
+ */
+
+const contractAddress = '0xe07cc138e77ffd246768fc989dc71d83df29074c'
+const contractJSON = {
   "contractName": "DiamondTracker2",
   "abi": [
     {
@@ -25546,3 +25551,60 @@
   "schemaVersion": "2.0.1",
   "updatedAt": "2018-11-10T11:14:36.209Z"
 }
+
+$(document).ready(() => {
+
+  window.web3 = new Web3(
+    new Web3.providers.HttpProvider('http://localhost:8545')
+  )
+  window.contract = web3.eth.contract(contractJSON.abi).at(contractAddress);
+
+  // Contract listener
+  // contract.LogStorageSet({ from: 'latest', to: 'latest' }).watch((err, res) => {
+  //   alert('Storage set: ' + res.args.storageVal)
+  // })
+
+
+
+  // Retrieve current account
+  $('#account-navbar-brand').text(web3.eth.accounts[0]);
+
+
+  // Retrieve and set the CA addresses
+  const numberOfCA = contract.getNumberOfCA();
+  for (var i = 0; i < numberOfCA; i++) {
+    $('#certification-authorities').append(
+      "<li class=\"list-group-item\">"+contract.certificate_authorities(i)+"</li>"
+    )
+  }
+
+  // Retrieve available diamond
+  const numberOfDiamonds = contract.getNumberOfDiamonds();
+  for (var i = 0; i < numberOfDiamonds; i++) {
+    $('#available-diamonds').append(
+      "<div class=\"card\" >"+
+        "<div class=\"card-header\">"+
+          contract.getDiamondByIndex(i)[0]+
+        "</div>"+
+        "<ul class=\"list-group list-group-flush\">"+
+          "<li class=\"list-group-item\"><b>Origin</b>: "+contract.getDiamondByIndex(i)[1]+"</li>"+
+          "<li class=\"list-group-item\"><b>Type</b>: "+contract.getDiamondByIndex(i)[2]+"</li>"+
+          "<li class=\"list-group-item\"><b>Size</b>: "+contract.getDiamondByIndex(i)[3]+"</li>"+
+          "<li class=\"list-group-item\"><b>Owner</b>: "+contract.getDiamondByIndex(i)[4]+"</li>"+
+          "<li class=\"list-group-item\"><b>Price</b>: $"+contract.getDiamondByIndex(i)[5]+"K</li>"+
+          // "<div class=\"card-body\">"+
+          //   "<a href=\"#\" class=\"card-link\" href=\"\">Buying History</a>"+
+          //   "<a href=\"#\" class=\"card-link\"></a>"+
+          // "</div>"+
+        "</ul>"+
+      "</div>"
+    )
+  }
+
+  $('#buy-diamond-button').click(async e => {
+    e.preventDefault();
+    const diamondId = $('#diamond-id-input').val();
+    const tx = await contract.buy(diamondId, { from: web3.eth.accounts[0], gas: 300000 });
+    alert('Storage val set, tx:' + tx)
+  });
+})

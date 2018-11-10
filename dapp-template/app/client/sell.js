@@ -1,4 +1,9 @@
-{
+/*
+  Minimal Dapp template
+ */
+
+const contractAddress = '0xe07cc138e77ffd246768fc989dc71d83df29074c'
+const contractJSON = {
   "contractName": "DiamondTracker2",
   "abi": [
     {
@@ -25546,3 +25551,66 @@
   "schemaVersion": "2.0.1",
   "updatedAt": "2018-11-10T11:14:36.209Z"
 }
+
+$(document).ready(() => {
+  window.web3 = new Web3(
+    new Web3.providers.HttpProvider('http://localhost:8545')
+  )
+  window.contract = web3.eth.contract(contractJSON.abi).at(contractAddress);
+
+  // Contract listener
+  // contract.LogStorageSet({ from: 'latest', to: 'latest' }).watch((err, res) => {
+  //   alert('Storage set: ' + res.args.storageVal)
+  // })
+
+  // Retrieve current account
+  $('#account-navbar-brand').text(web3.eth.accounts[0]);
+
+
+  // Retrieve the number of pending requests of the user
+  const numberOfPendingRequests = contract.getPendingBuyingRequestsSize();
+
+  for (var i = 0; i < numberOfPendingRequests; i++) {
+    $('#pending-requests').append(
+      "<div class=\"card\" >"+
+        "<div class=\"card-header\">"+
+          contract.getPendingBuyingRequestByIndex(i)[0]+
+        "</div>"+
+        "<ul class=\"list-group list-group-flush\">"+
+          "<li class=\"list-group-item\"><b>Buyer</b>: "+contract.getPendingBuyingRequestByIndex(i)[1]+"</li>"+
+          "<li class=\"list-group-item\"><b>Status</b>: "+contract.getPendingBuyingRequestByIndex(i)[2]+"</li>"+
+        "</ul>"+
+      "</div>"
+    )
+  }
+
+  // Retrieve the number of owned diamonds
+  const numberOfOwnedDiamonds = contract.getNumberOfOwnedDiamonds(web3.eth.accounts[0]);
+
+  for (var i = 0; i < numberOfOwnedDiamonds; i++) {
+    $('#owner-diamonds').append(
+      "<div class=\"card\" >"+
+        "<div class=\"card-header\">"+
+          contract.getOwnedDiamondsByIndex(web3.eth.accounts[0],i)[0]+
+        "</div>"+
+        "<ul class=\"list-group list-group-flush\">"+
+          "<li class=\"list-group-item\"><b>Origin</b>: "+contract.getOwnedDiamondsByIndex(web3.eth.accounts[0],i)[1]+"</li>"+
+          "<li class=\"list-group-item\"><b>Type</b>: "+contract.getOwnedDiamondsByIndex(web3.eth.accounts[0],i)[2]+"</li>"+
+          "<li class=\"list-group-item\"><b>Size</b>: "+contract.getOwnedDiamondsByIndex(web3.eth.accounts[0],i)[3]+"</li>"+
+          "<li class=\"list-group-item\"><b>Owner</b>: "+contract.getOwnedDiamondsByIndex(web3.eth.accounts[0],i)[4]+"</li>"+
+          "<li class=\"list-group-item\"><b>Price</b>: "+contract.getOwnedDiamondsByIndex(web3.eth.accounts[0],i)[5]+"</li>"+
+        "</ul>"+
+      "</div>"
+    )
+  }
+
+
+
+  $('#sell-diamond-button').click(async e => {
+    e.preventDefault();
+    const diamondID = $('#diamond-id-input').val();
+    const newOwnerAddress = $('#new-owner-input').val();
+    const tx = await contract.sell(diamondID, newOwnerAddress, { from: web3.eth.accounts[0], gas: 300000 });
+    alert('Diamond sold, tx:' + tx)
+  })
+})

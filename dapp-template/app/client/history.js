@@ -1,4 +1,14 @@
-{
+/*
+  Minimal Dapp template
+ */
+
+const contractAddress = '0xe07cc138e77ffd246768fc989dc71d83df29074c'
+
+// var contractJSON = $.getJSON("config/DiamondTracker2.json", function (data) {
+//   return data;
+// });
+
+var contractJSON = {
   "contractName": "DiamondTracker2",
   "abi": [
     {
@@ -25546,3 +25556,55 @@
   "schemaVersion": "2.0.1",
   "updatedAt": "2018-11-10T11:14:36.209Z"
 }
+
+$(document).ready(() => {
+  window.web3 = new Web3(
+    new Web3.providers.HttpProvider('http://localhost:8545')
+  )
+  window.contract = web3.eth.contract(contractJSON.abi).at(contractAddress);
+
+  // Contract listener
+  // contract.LogStorageSet({ from: 'latest', to: 'latest' }).watch((err, res) => {
+  //   alert('Storage set: ' + res.args.storageVal)
+  // })
+
+  // Retrieve current account
+  $('#account-navbar-brand').text(web3.eth.accounts[0]);
+
+
+  // Retireve and set the CA addresses
+  const numberOfCA = contract.getNumberOfCA();
+  for (var i = 0; i < numberOfCA; i++) {
+    $('#certification-authorities').append(
+      "<li class=\"list-group-item\">"+contract.certificate_authorities(i)+"</li>"
+    )
+  }
+
+  // Retireve and set the CA addresses
+  $('#search-diamond').click( function () {
+    var searchDiamondId = $('#search-diamond-id').val();
+    var DiamondExchangeHistoryLenght = contract.getDiamondExchangeHistoryLenght(searchDiamondId);
+    // Retrieve available diamond
+    for (var i = 0; i < DiamondExchangeHistoryLenght; i++) {
+      $('#diamond-history').append(
+        "<div class=\"card\" >"+
+          "<div class=\"card-header\">"+
+            contract.diamondExchangeHistory(searchDiamondId,i)[0]+
+          "</div>"+
+          "<ul class=\"list-group list-group-flush\">"+
+            "<li class=\"list-group-item \"><b>Seller</b>: "+contract.diamondExchangeHistory(searchDiamondId,i)[2]+"</li>"+
+            "<li class=\"list-group-item \"><b>Buyer</b>: "+contract.diamondExchangeHistory(searchDiamondId,i)[1]+"</li>"+
+          "</ul>"+
+        "</div>"
+      )
+    }
+  });
+
+
+  // $('#certification-authorities').click(async e => {
+  //   e.preventDefault()
+  //   const storageVal = $('#value').val()
+  //   const tx = await contract.setStorage(storageVal, { from: web3.eth.accounts[0] })
+  //   alert('Storage val set, tx:' + tx)
+  // })
+})
