@@ -128,6 +128,7 @@ contract DiamondTracker2 {
 
         //get the buy requests of the msg.sender
         DiamondExchange[] storage exchangesRequests = diamondExchangeRequests[msg.sender];
+        bool found = false;
         for(uint k = 0; k < exchangesRequests.length; k++) {
             // if a request for the diamond_id is found
             if (exchangesRequests[k].diamond_id == sellingDiamond.id){
@@ -140,8 +141,23 @@ contract DiamondTracker2 {
                     // otherwise set it to rejected
                     exchangesRequests[k].state = ExchangeState.Rejected;
                 }
+                found = true;
             }
         }
+
+        // if this sell is not related to any buy request
+        if (!found) {
+          // Building the Diamond Exchange object
+          DiamondExchange memory exchange; //This memory exchange will be converted to storage once pushed into the array
+          exchange.diamond_id = sellingDiamond.id;
+          exchange.buyer = newOwner;
+          exchange.seller = msg.sender;
+          exchange.state = ExchangeState.Finished;
+
+          diamondExchangeRequests[msg.sender].push(exchange);
+          diamondExchangeHistory[sellingDiamond.id].push(exchange);
+        }
+
         emit diamondSold();
     }
 
